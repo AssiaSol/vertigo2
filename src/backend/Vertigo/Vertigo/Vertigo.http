@@ -1,0 +1,6 @@
+@Vertigo_HostAddress = http://localhost:5096
+
+GET {{Vertigo_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

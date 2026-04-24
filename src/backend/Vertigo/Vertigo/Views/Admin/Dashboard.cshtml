@@ -1,0 +1,208 @@
+﻿@model dynamic
+@{
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title> Dashboard Administrateur</title>
+    </head>
+    <body>
+
+        <header>
+            <nav>
+                <span class="logo">Vertigo Admin</span>
+                <a href="#accueil">Accueil</a>
+                <a href="#commandes">Commandes</a>
+                <a href="#signalements">Signalements</a>
+            </nav>
+        </header>
+
+        <main id="dashboard-admin">
+
+            <!-- PAGE ACCUEIL (STATS) -->
+            <section id="accueil">
+                <h1>Dashboard Administrateur</h1>
+                <p>Bienvenue dans l'interface de gestion Vertigo.</p>
+
+                <section>
+                    <h2>Statistiques globales</h2>
+
+                    <article class="stat-card">
+                        <h3>Commandes totales</h3>
+                        <p class="stat-value">@ViewBag.TotalVentes</p>
+                        <small>Depuis le lancement</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <h3>Taux de récupération</h3>
+                        <p class="stat-value">@ViewBag.TauxDeRecup %</p>
+                        <small>Objectif : 85%</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <h3>Chiffre d'affaires</h3>
+                        <p class="stat-value">@ViewBag.ChifreAff DA</p>
+                        <small>Total des paniers vendus</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <h3>Commissions Vertigo</h3>
+                        <p class="stat-value">@ViewBag.comission DA</p>
+                        <small>25% sur chaque vente</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <h3>Reversé aux commerçants</h3>
+                        <p class="stat-value">@ViewBag.reverse DA</p>
+                        <small>75% des ventes</small>
+                    </article>
+
+                    <article class="stat-card">
+                        <h3>Utilisateurs actifs</h3>
+                        <p class="stat-value">89</p>
+                        <small>Commerçants + Clients</small>
+                    </article>
+                </section>
+            </section>
+
+            <!-- PAGE COMMANDES -->
+            <section id="commandes">
+                <h1>Gestion des commandes</h1>
+
+                <section>
+                    <h2>Recherche et filtres</h2>
+
+                    <div class="search-container">
+                        <label for="recherche-globale">Rechercher :</label>
+                        <input type="text" id="recherche-globale" placeholder="ID, commerçant, client...">
+                    </div>
+
+                    <div class="filter-container">
+                        <span>Filtrer :</span>
+                        <label><input type="radio" name="filtre-statut" value="tous" checked> Tous</label>
+                        <label><input type="radio" name="filtre-statut" value="en-attente"> En attente</label>
+                        <label><input type="radio" name="filtre-statut" value="recupere"> Récupéré</label>
+                    </div>
+                </section>
+            <section>
+                <div class="table-actions">
+                    <span>Total commissions : <strong>@ViewBag.comission DA</strong></span>
+                    <button type="button" id="exporter-csv">Exporter CSV</button>
+                </div>
+
+                <table class="data-table" id="table-commandes">
+                    <caption>Liste des commandes</caption>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Commerçant</th>
+                            <th>Acheteur</th>
+                            <th>Prix</th>
+                            <th>Commission</th>
+                            <th>Revenu</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cmd in Model)
+                        {
+                            <tr>
+                                <td>CMD-@cmd.ID</td>
+                                <td>@cmd.Panier?.Boutique?.NomBoutique</td>
+                                <td>@cmd.Client?.Nom</td>
+                                <td>@cmd.Prix DA</td>
+                                <td>@(cmd.Prix / 4) DA</td>
+                                <td>@((cmd.Prix / 4) * 3) DA</td>
+                                <td>
+                                    @(cmd.Statut ? "Récupéré" : "En attente")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3">TOTAUX :</th>
+                            <th>@ViewBag.ChifreAff DA</th>
+                            <th>@ViewBag.comission DA</th>
+                            <th>@ViewBag.reverse DA</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </section>
+
+            <!-- PAGE SIGNALEMENTS -->
+            <section id="signalements">
+                <h1>Modération - Utilisateurs signalés</h1>
+
+                <div class="alert-info">
+                    <strong>Règles :</strong>
+                    <ul>
+                        <li>Bannissement après 2 signalements (commerçant ou client)</li>
+                        <li>Signalements cumulables sur l'historique</li>
+                    </ul>
+                </div>
+
+                <table class="data-table" id="table-signalements">
+                    <caption>Signalements actifs</caption>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Utilisateur</th>
+                            <th>Type</th>
+                            <th>Signalé par</th>
+                            <th>Nb</th>
+                            <th>Statut</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>SIG-001</td>
+                            <td>Boulangerie Mirage</td>
+                            <td>Commerçant</td>
+                            <td>Karim Benali, Amina Cherifi</td>
+                            <td>3</td>
+                            <td>À bannir</td>
+                            <td><button>Bannir</button></td>
+                        </tr>
+                        <tr>
+                            <td>SIG-002</td>
+                            <td>Nassim Bouras</td>
+                            <td>Client</td>
+                            <td>Restaurant Le Patio</td>
+                            <td>1</td>
+                            <td>Surveillé</td>
+                            <td><button>Bannir</button></td>
+                        </tr>
+                        <tr>
+                            <td>SIG-003</td>
+                            <td>Youcef Mekki</td>
+                            <td>Client</td>
+                            <td>Boulangerie El Amel, Hôtel Sheraton</td>
+                            <td>2</td>
+                            <td>À bannir</td>
+                            <td><button>Bannir</button></td>
+                        </tr>
+                        <tr>
+                            <td>SIG-004</td>
+                            <td>Supermarché Bon Prix</td>
+                            <td>Commerçant</td>
+                            <td>Fatima Oukaci, Mohamed Bensalem</td>
+                            <td>3</td>
+                            <td>À bannir</td>
+                            <td><button>Bannir</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+
+        <footer>
+            <p>© 2026 Vertigo - Interface d'administration</p>
+        </footer>
+
+    </body>
+</html>
+}
