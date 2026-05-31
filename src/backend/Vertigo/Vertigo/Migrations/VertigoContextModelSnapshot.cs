@@ -22,6 +22,40 @@ namespace Vertigo.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Vertigo.Models.Avis", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BoutiqueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Commentaire")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Note")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UtilisateurId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BoutiqueId");
+
+                    b.HasIndex("UtilisateurId", "BoutiqueId")
+                        .IsUnique();
+
+                    b.ToTable("Avis");
+                });
+
             modelBuilder.Entity("Vertigo.Models.Boutique", b =>
                 {
                     b.Property<int>("IDBoutique")
@@ -100,6 +134,40 @@ namespace Vertigo.Migrations
                     b.ToTable("Boutique");
                 });
 
+            modelBuilder.Entity("Vertigo.Models.ClientRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Commentaire")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("GerantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Note")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("GerantId", "ClientId")
+                        .IsUnique();
+
+                    b.ToTable("ClientRating");
+                });
+
             modelBuilder.Entity("Vertigo.Models.Commande", b =>
                 {
                     b.Property<int>("ID")
@@ -138,6 +206,60 @@ namespace Vertigo.Migrations
                     b.HasIndex("PanierID");
 
                     b.ToTable("Commande");
+                });
+
+            modelBuilder.Entity("Vertigo.Models.DealFavorite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PanierId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PanierId");
+
+                    b.HasIndex("UserId", "PanierId")
+                        .IsUnique();
+
+                    b.ToTable("DealFavorite");
+                });
+
+            modelBuilder.Entity("Vertigo.Models.Favorite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BoutiqueId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BoutiqueId");
+
+                    b.HasIndex("UserId", "BoutiqueId")
+                        .IsUnique();
+
+                    b.ToTable("Favorite");
                 });
 
             modelBuilder.Entity("Vertigo.Models.Panier", b =>
@@ -251,9 +373,32 @@ namespace Vertigo.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Wilaya")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("ID");
 
                     b.ToTable("Utilisateur");
+                });
+
+            modelBuilder.Entity("Vertigo.Models.Avis", b =>
+                {
+                    b.HasOne("Vertigo.Models.Boutique", "Boutique")
+                        .WithMany()
+                        .HasForeignKey("BoutiqueId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Vertigo.Models.Utilisateur", "Utilisateur")
+                        .WithMany()
+                        .HasForeignKey("UtilisateurId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Boutique");
+
+                    b.Navigation("Utilisateur");
                 });
 
             modelBuilder.Entity("Vertigo.Models.Boutique", b =>
@@ -289,6 +434,25 @@ namespace Vertigo.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Vertigo.Models.ClientRating", b =>
+                {
+                    b.HasOne("Vertigo.Models.Utilisateur", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Vertigo.Models.Utilisateur", "Gerant")
+                        .WithMany()
+                        .HasForeignKey("GerantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Gerant");
+                });
+
             modelBuilder.Entity("Vertigo.Models.Commande", b =>
                 {
                     b.HasOne("Vertigo.Models.Utilisateur", "Client")
@@ -306,6 +470,44 @@ namespace Vertigo.Migrations
                     b.Navigation("Client");
 
                     b.Navigation("Panier");
+                });
+
+            modelBuilder.Entity("Vertigo.Models.DealFavorite", b =>
+                {
+                    b.HasOne("Vertigo.Models.Panier", "Panier")
+                        .WithMany()
+                        .HasForeignKey("PanierId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Vertigo.Models.Utilisateur", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Panier");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Vertigo.Models.Favorite", b =>
+                {
+                    b.HasOne("Vertigo.Models.Boutique", "Boutique")
+                        .WithMany()
+                        .HasForeignKey("BoutiqueId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Vertigo.Models.Utilisateur", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Boutique");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Vertigo.Models.Panier", b =>

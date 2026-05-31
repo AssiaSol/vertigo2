@@ -30,3 +30,10 @@ export function signup({ nom, email, motDePasse, telephone, wilaya }) {
 export function logout() {
   return apiFetch("/account/logout", { method: "POST" });
 }
+
+export function updateProfile(id, payload) {
+  return apiFetch(`/account/edit/${id}`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}

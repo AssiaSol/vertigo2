@@ -4,8 +4,10 @@ import { AdminChrome } from "../components/AdminChrome";
 import { useAuth } from "../context/AuthContext";
 import { approveMerchant, getPendingMerchants, rejectMerchant } from "../api/merchants";
 import { getAdminStats } from "../api/admin";
+import { useT } from "../i18n";
 
 export function AdminApprovalsPage() {
+  const t = useT();
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const isAdmin = (user?.role ?? user?.Role) === "Admin";
@@ -29,36 +31,36 @@ export function AdminApprovalsPage() {
         navigate("/login", { replace: true });
         return;
       }
-      if (err.status === 403) setError("Admin access required.");
-      else setError("Couldn't load admin data.");
+      if (err.status === 403) setError(t("adminApprovals.accessDenied"));
+      else setError(t("adminApprovals.errors.load"));
     } finally {
       setLoading(false);
     }
-  }, [navigate, setUser]);
+  }, [navigate, setUser, t]);
 
   useEffect(() => { load(); }, [load]);
 
   const handleApprove = async (id) => {
-    if (!window.confirm("Approve this merchant?")) return;
+    if (!window.confirm(t("adminApprovals.confirm.approve"))) return;
     setActingId(id);
     try {
       await approveMerchant(id);
       await load();
     } catch {
-      alert("Couldn't approve.");
+      alert(t("adminApprovals.errors.approve"));
     } finally {
       setActingId(null);
     }
   };
 
   const handleReject = async (id) => {
-    if (!window.confirm("Reject and delete this application? This cannot be undone.")) return;
+    if (!window.confirm(t("adminApprovals.confirm.reject"))) return;
     setActingId(id);
     try {
       await rejectMerchant(id);
       await load();
     } catch {
-      alert("Couldn't reject.");
+      alert(t("adminApprovals.errors.reject"));
     } finally {
       setActingId(null);
     }
@@ -66,21 +68,21 @@ export function AdminApprovalsPage() {
 
   return (
     <AdminChrome
-      title="Merchant applications"
-      subtitle="Approvals"
+      title={t("adminApprovals.title")}
+      subtitle={t("adminApprovals.subtitle")}
       action={
         <button
           onClick={load}
           className="inline-flex items-center gap-2 rounded-xl border border-eco-green/20 bg-white px-3 py-2 text-xs font-bold text-eco-green shadow-sm transition hover:border-eco-coral/40"
         >
           <RefreshIcon className="h-3.5 w-3.5" />
-          Refresh
+          {t("adminApprovals.refresh")}
         </button>
       }
     >
       {!isAdmin && (
         <div className="rounded-2xl border border-eco-coral/25 bg-eco-coral/10 p-4 text-sm text-eco-coral">
-          Admin access required.
+          {t("adminApprovals.accessDenied")}
         </div>
       )}
 
@@ -91,15 +93,15 @@ export function AdminApprovalsPage() {
           <section className="overflow-hidden rounded-2xl border border-eco-green/10 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-eco-green/10 px-5 py-3">
               <div>
-                <h2 className="font-heading text-sm font-bold text-eco-green">Pending applications</h2>
-                <p className="text-xs text-eco-green/60">Review each Registre de Commerce before approving.</p>
+                <h2 className="font-heading text-sm font-bold text-eco-green">{t("adminApprovals.section.title")}</h2>
+                <p className="text-xs text-eco-green/60">{t("adminApprovals.section.subtitle")}</p>
               </div>
               <span className="rounded-full bg-eco-softYellow/40 px-2.5 py-1 text-[11px] font-bold text-eco-green">
-                {pending.length} waiting
+                {t("adminApprovals.section.waiting", { count: pending.length })}
               </span>
             </div>
 
-            {loading && <div className="px-5 py-10 text-center text-sm text-eco-green/60">Loading…</div>}
+            {loading && <div className="px-5 py-10 text-center text-sm text-eco-green/60">{t("common.loading")}</div>}
 
             {!loading && error && (
               <div className="px-5 py-6 text-sm text-eco-coral">{error}</div>
@@ -107,8 +109,8 @@ export function AdminApprovalsPage() {
 
             {!loading && !error && pending.length === 0 && (
               <div className="px-5 py-12 text-center">
-                <p className="font-heading text-base font-bold text-eco-green">No applications waiting</p>
-                <p className="mt-1 text-xs text-eco-green/55">New submissions appear here automatically.</p>
+                <p className="font-heading text-base font-bold text-eco-green">{t("adminApprovals.empty.title")}</p>
+                <p className="mt-1 text-xs text-eco-green/55">{t("adminApprovals.empty.body")}</p>
               </div>
             )}
 
@@ -128,14 +130,15 @@ export function AdminApprovalsPage() {
 }
 
 function StatGrid({ stats, loading }) {
+  const t = useT();
   const cards = [
-    { label: "Pending applications", value: stats?.pendingApplications, tone: "coral" },
-    { label: "Approved merchants", value: stats?.totalMerchants, tone: "green" },
-    { label: "Active offers", value: stats?.activeOffers, tone: "yellow" },
-    { label: "Total users", value: stats?.totalUsers, tone: "green" },
-    { label: "Total orders", value: stats?.totalOrders, tone: "green" },
-    { label: "Completed orders", value: stats?.completedOrders, tone: "green" },
-    { label: "Banned users", value: stats?.bannedUsers, tone: "coral" },
+    { label: t("adminApprovals.stats.pendingApplications"), value: stats?.pendingApplications, tone: "coral" },
+    { label: t("adminApprovals.stats.approvedMerchants"), value: stats?.totalMerchants, tone: "green" },
+    { label: t("adminApprovals.stats.activeOffers"), value: stats?.activeOffers, tone: "yellow" },
+    { label: t("adminApprovals.stats.totalUsers"), value: stats?.totalUsers, tone: "green" },
+    { label: t("adminApprovals.stats.totalOrders"), value: stats?.totalOrders, tone: "green" },
+    { label: t("adminApprovals.stats.completedOrders"), value: stats?.completedOrders, tone: "green" },
+    { label: t("adminApprovals.stats.bannedUsers"), value: stats?.bannedUsers, tone: "coral" },
   ];
 
   const toneClass = {
@@ -159,17 +162,18 @@ function StatGrid({ stats, loading }) {
 }
 
 function ApplicationsTable({ rows, actingId, onApprove, onReject }) {
+  const t = useT();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-eco-beige/40 text-left text-[10px] font-bold uppercase tracking-wider text-eco-green/60">
-            <Th>Applicant</Th>
-            <Th>Shop</Th>
-            <Th>City</Th>
-            <Th>Registre</Th>
-            <Th>Submitted</Th>
-            <Th className="text-right">Actions</Th>
+            <Th>{t("adminApprovals.table.applicant")}</Th>
+            <Th>{t("adminApprovals.table.shop")}</Th>
+            <Th>{t("adminApprovals.table.city")}</Th>
+            <Th>{t("adminApprovals.table.registre")}</Th>
+            <Th>{t("adminApprovals.table.submitted")}</Th>
+            <Th className="text-right">{t("adminApprovals.table.actions")}</Th>
           </tr>
         </thead>
         <tbody className="divide-y divide-eco-green/10">
@@ -202,14 +206,14 @@ function ApplicationsTable({ rows, actingId, onApprove, onReject }) {
                   disabled={actingId === m.id}
                   className="mr-1.5 inline-flex items-center rounded-lg bg-eco-green px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:brightness-[1.05] active:scale-[0.99] disabled:opacity-60"
                 >
-                  Approve
+                  {t("adminApprovals.actions.approve")}
                 </button>
                 <button
                   onClick={() => onReject(m.id)}
                   disabled={actingId === m.id}
                   className="inline-flex items-center rounded-lg border border-eco-coral/30 bg-white px-2.5 py-1.5 text-[11px] font-bold text-eco-coral shadow-sm transition hover:bg-eco-coral/10 active:scale-[0.99] disabled:opacity-60"
                 >
-                  Reject
+                  {t("adminApprovals.actions.reject")}
                 </button>
               </Td>
             </tr>

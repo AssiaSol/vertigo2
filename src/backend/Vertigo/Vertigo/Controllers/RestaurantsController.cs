@@ -92,6 +92,57 @@ namespace Vertigo.Controllers
             return Ok(results);
         }
 
+        // GET /api/restaurants/{id}?latitude=&longitude= — single restaurant + all its active deals
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<NearbyRestaurantDto>> Detail(
+            int id,
+            [FromQuery] double? latitude,
+            [FromQuery] double? longitude)
+        {
+            var b = await _context.Boutique.FirstOrDefaultAsync(x => x.IDBoutique == id && !x.BAN);
+            if (b == null) return NotFound();
+
+            var now = DateTime.UtcNow;
+            var offers = await _context.Panier
+                .Where(p => p.IdBoutique == b.IDBoutique
+                    && p.IsActive
+                    && (p.ValidUntil == null || p.ValidUntil > now)
+                    && (p.ValidFrom == null || p.ValidFrom <= now))
+                .OrderByDescending(p => p.DiscountPercentage)
+                .ToListAsync();
+
+            double distanceKm = 0;
+            if (latitude.HasValue && longitude.HasValue && b.Latitude.HasValue && b.Longitude.HasValue)
+                distanceKm = Math.Round(HaversineKm(latitude.Value, longitude.Value, b.Latitude.Value, b.Longitude.Value), 2);
+
+            return Ok(new NearbyRestaurantDto
+            {
+                Id = b.IDBoutique,
+                Name = b.NomBoutique,
+                Address = b.Localisation,
+                Ville = b.Ville,
+                Latitude = b.Latitude ?? 0,
+                Longitude = b.Longitude ?? 0,
+                CuisineType = b.CuisineType,
+                Rating = b.Note?.Note ?? 0.0,
+                ImageUrl = b.BoutiqueImagePath,
+                PhoneNumber = b.PhoneNumber,
+                DistanceKm = distanceKm,
+                Offers = offers.Select(o => new OfferDto
+                {
+                    Id = o.ID,
+                    Title = o.Name,
+                    Description = o.Description,
+                    DiscountPercentage = o.DiscountPercentage,
+                    OriginalPrice = o.OriginalPrice,
+                    DiscountedPrice = o.PanierPrix,
+                    ValidFrom = o.ValidFrom,
+                    ValidUntil = o.ValidUntil,
+                    ImageUrl = o.PanierImagePath
+                }).ToList()
+            });
+        }
+
         private static double HaversineKm(double lat1, double lng1, double lat2, double lng2)
         {
             const double R = 6371.0;

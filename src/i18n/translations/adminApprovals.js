@@ -1,0 +1,137 @@
+export const adminApprovals = {
+  en: {
+    title: "Merchant applications",
+    subtitle: "Approvals",
+    refresh: "Refresh",
+    accessDenied: "Admin access required.",
+    errors: {
+      load: "Couldn't load admin data.",
+      approve: "Couldn't approve.",
+      reject: "Couldn't reject.",
+    },
+    confirm: {
+      approve: "Approve this merchant?",
+      reject: "Reject and delete this application? This cannot be undone.",
+    },
+    section: {
+      title: "Pending applications",
+      subtitle: "Review each Registre de Commerce before approving.",
+      waiting: "{count} waiting",
+    },
+    empty: {
+      title: "No applications waiting",
+      body: "New submissions appear here automatically.",
+    },
+    stats: {
+      pendingApplications: "Pending applications",
+      approvedMerchants: "Approved merchants",
+      activeOffers: "Active offers",
+      totalUsers: "Total users",
+      totalOrders: "Total orders",
+      completedOrders: "Completed orders",
+      bannedUsers: "Banned users",
+    },
+    table: {
+      applicant: "Applicant",
+      shop: "Shop",
+      city: "City",
+      registre: "Registre",
+      submitted: "Submitted",
+      actions: "Actions",
+    },
+    actions: {
+      approve: "Approve",
+      reject: "Reject",
+    },
+  },
+  fr: {
+    title: "Candidatures de marchands",
+    subtitle: "Validations",
+    refresh: "Actualiser",
+    accessDenied: "Accès administrateur requis.",
+    errors: {
+      load: "Impossible de charger les données admin.",
+      approve: "Impossible d'approuver.",
+      reject: "Impossible de refuser.",
+    },
+    confirm: {
+      approve: "Approuver ce marchand ?",
+      reject: "Refuser et supprimer cette candidature ? Cette action est irréversible.",
+    },
+    section: {
+      title: "Candidatures en attente",
+      subtitle: "Vérifiez chaque Registre de Commerce avant d'approuver.",
+      waiting: "{count} en attente",
+    },
+    empty: {
+      title: "Aucune candidature en attente",
+      body: "Les nouvelles candidatures apparaissent ici automatiquement.",
+    },
+    stats: {
+      pendingApplications: "Candidatures en attente",
+      approvedMerchants: "Marchands approuvés",
+      activeOffers: "Offres actives",
+      totalUsers: "Utilisateurs totaux",
+      totalOrders: "Commandes totales",
+      completedOrders: "Commandes terminées",
+      bannedUsers: "Utilisateurs bannis",
+    },
+    table: {
+      applicant: "Candidat",
+      shop: "Boutique",
+      city: "Ville",
+      registre: "Registre",
+      submitted: "Soumis le",
+      actions: "Actions",
+    },
+    actions: {
+      approve: "Approuver",
+      reject: "Refuser",
+    },
+  },
+  ar: {
+    title: "طلبات التجار",
+    subtitle: "الموافقات",
+    refresh: "تحديث",
+    accessDenied: "يتطلب صلاحيات المشرف.",
+    errors: {
+      load: "تعذّر تحميل بيانات المشرف.",
+      approve: "تعذّرت الموافقة.",
+      reject: "تعذّر الرفض.",
+    },
+    confirm: {
+      approve: "هل توافق على هذا التاجر؟",
+      reject: "هل تريد رفض هذا الطلب وحذفه؟ لا يمكن التراجع عن هذا الإجراء.",
+    },
+    section: {
+      title: "الطلبات قيد الانتظار",
+      subtitle: "راجع السجل التجاري قبل الموافقة.",
+      waiting: "{count} قيد الانتظار",
+    },
+    empty: {
+      title: "لا توجد طلبات قيد الانتظار",
+      body: "تظهر الطلبات الجديدة هنا تلقائياً.",
+    },
+    stats: {
+      pendingApplications: "الطلبات قيد الانتظار",
+      approvedMerchants: "التجار المعتمدون",
+      activeOffers: "العروض النشطة",
+      totalUsers: "إجمالي المستخدمين",
+      totalOrders: "إجمالي الطلبات",
+      completedOrders: "الطلبات المكتملة",
+      bannedUsers: "المستخدمون المحظورون",
+    },
+    table: {
+      applicant: "مقدّم الطلب",
+      shop: "المتجر",
+      city: "المدينة",
+      registre: "السجل التجاري",
+      submitted: "تاريخ الإرسال",
+      actions: "الإجراءات",
+    },
+    actions: {
+      approve: "موافقة",
+      reject: "رفض",
+    },
+  },
+};

@@ -2,14 +2,15 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { logout } from "../api/auth";
 import vertigoLogo from "../assets/vertigo-logo.png";
-
-const NAV = [
-  { to: "/admin/approvals", label: "Approvals", iconPath: "M5 12l5 5L20 7" },
-];
+import { LanguageSwitcher, useT } from "../i18n";
 
 export function AdminChrome({ title, subtitle, action, children }) {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
+  const t = useT();
+  const NAV = [
+    { to: "/admin/approvals", label: t("common.nav.adminApprovals"), iconPath: "M5 12l5 5L20 7" },
+  ];
 
   const handleLogout = async () => {
     try { await logout(); } catch { /* ignore */ }
@@ -24,8 +25,8 @@ export function AdminChrome({ title, subtitle, action, children }) {
         <div className="flex items-center gap-3 border-b border-eco-beige/15 px-5 py-5">
           <img src={vertigoLogo} alt="Vertigo" className="h-10 w-auto select-none" draggable={false} />
           <div className="min-w-0">
-            <p className="truncate font-heading text-sm font-bold text-eco-beige">Vertigo</p>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-eco-beige/60">Admin console</p>
+            <p className="truncate font-heading text-sm font-bold text-eco-beige">{t("common.appName")}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-eco-beige/60">{t("common.role.admin")}</p>
           </div>
         </div>
 
@@ -53,13 +54,14 @@ export function AdminChrome({ title, subtitle, action, children }) {
 
         <div className="border-t border-eco-beige/15 p-4">
           <div className="rounded-xl bg-eco-beige/10 px-3 py-2.5">
-            <p className="truncate text-xs font-bold text-eco-beige">{user?.nom ?? user?.Nom ?? "Admin"}</p>
+            <p className="truncate text-xs font-bold text-eco-beige">{user?.nom ?? user?.Nom ?? t("common.role.admin")}</p>
             <p className="truncate text-[10px] text-eco-beige/60">{user?.email ?? user?.Email ?? ""}</p>
+            <div className="mt-2"><LanguageSwitcher variant="dark" className="w-full" /></div>
             <button
               onClick={handleLogout}
               className="mt-2 w-full rounded-lg border border-eco-beige/30 bg-eco-beige/5 px-2 py-1.5 text-[11px] font-bold text-eco-beige transition hover:border-eco-softYellow/50 hover:bg-eco-beige/15"
             >
-              Sign out
+              {t("common.nav.logout")}
             </button>
           </div>
         </div>
@@ -71,9 +73,12 @@ export function AdminChrome({ title, subtitle, action, children }) {
         <header className="sticky top-0 z-10 border-b border-eco-green/10 bg-white">
           <div className="flex items-center justify-between gap-4 px-6 py-4">
             <div className="min-w-0">
-              <p className="font-heading text-[10px] font-bold uppercase tracking-[0.2em] text-eco-coral">
-                {subtitle ?? "Admin"}
-              </p>
+              <div className="inline-flex items-center gap-2 rounded-full bg-eco-coral/10 px-3 py-1 ring-1 ring-eco-coral/15">
+                <span className="h-1.5 w-1.5 rounded-full bg-eco-coral" />
+                <p className="font-heading text-[10px] font-bold uppercase tracking-[0.24em] text-eco-coral">
+                  {subtitle ?? t("common.role.admin")}
+                </p>
+              </div>
               <h1 className="mt-1 truncate font-heading text-xl font-bold text-eco-green md:text-2xl">
                 {title}
               </h1>

@@ -49,8 +49,8 @@ namespace Vertigo.Models
         public bool BAN { get; set; } = false;
 
 
-        [Required]
-        public string ProfilImagePath { get; set; }
+        [Required(AllowEmptyStrings = true)]
+        public string ProfilImagePath { get; set; } = string.Empty;
 
         [MaxLength(50)]
         public string? Wilaya { get; set; }

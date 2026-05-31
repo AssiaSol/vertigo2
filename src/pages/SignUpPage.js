@@ -5,9 +5,11 @@ import {
   AuthChrome,
   AuthEyebrow,
   AuthInput,
+  AuthPasswordInput,
 } from "../components/auth/AuthChrome";
 import { signup } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
+import { useT } from "../i18n";
 
 const WILAYAS = [
   "Adrar", "Chlef", "Laghouat", "Oum El Bouaghi", "Batna", "Béjaïa", "Biskra",
@@ -21,13 +23,14 @@ const WILAYAS = [
 ];
 
 function WilayaSelect() {
+  const t = useT();
   return (
     <div className="space-y-1.5">
       <label
         htmlFor="signup-wilaya"
         className="block text-xs font-semibold uppercase tracking-wide text-eco-green/55"
       >
-        Wilaya
+        {t("signup.wilaya")}
       </label>
       <select
         id="signup-wilaya"
@@ -36,7 +39,7 @@ function WilayaSelect() {
         defaultValue=""
         className="w-full rounded-xl border border-eco-green/15 bg-eco-beige/35 px-4 py-3 text-sm text-eco-green shadow-sm transition focus:border-eco-coral/60 focus:bg-white/80 focus:outline-none focus:ring-2 focus:ring-eco-coral/20"
       >
-        <option value="" disabled>Select your wilaya…</option>
+        <option value="" disabled>{t("signup.wilayaPlaceholder")}</option>
         {WILAYAS.map((w) => <option key={w} value={w}>{w}</option>)}
       </select>
     </div>
@@ -75,6 +78,7 @@ function extractErrorMessage(err) {
 export function SignUpPage() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
+  const t = useT();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -99,7 +103,7 @@ export function SignUpPage() {
       setUser(res);
       navigate("/deals");
     } catch (err) {
-      setError(extractErrorMessage(err) || "Something went wrong. Please try again.");
+      setError(extractErrorMessage(err) || t("signup.genericError"));
     } finally {
       setLoading(false);
     }
@@ -107,17 +111,16 @@ export function SignUpPage() {
 
   return (
     <AuthChrome variant="signup">
-      <main className="mx-auto flex min-h-[calc(100vh-5.25rem)] max-w-6xl items-center justify-center px-4 py-12 md:px-6 md:py-16 lg:py-20  bg-[#F4E3B2]/60">
+      <main className="mx-auto flex min-h-[calc(100vh-5.25rem)] max-w-6xl items-center justify-center px-4 py-12 md:px-6 md:py-16 lg:py-20">
         <AuthCard>
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:items-start">
             <div className="lg:pr-4">
-              <AuthEyebrow>Join Vertigo</AuthEyebrow>
-              <h1 className="mt-3 font-heading text-4xl font-bold tracking-tight text-eco-green md:text-5xl  bg-[#f5f0e8]/60">
-                Create account
+              <AuthEyebrow>{t("signup.eyebrow")}</AuthEyebrow>
+              <h1 className="mt-3 font-heading text-4xl font-bold tracking-tight text-eco-green md:text-5xl">
+                {t("signup.createAccount")}
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-eco-green/70 md:text-lg">
-                Save your favorite food categories, get basket alerts, and follow
-                your deliveries in one place.
+                {t("signup.intro")}
               </p>
               <div className="mt-8 hidden h-px w-16 rounded-full bg-gradient-to-r from-eco-coral to-eco-softYellow lg:block" />
             </div>
@@ -136,72 +139,70 @@ export function SignUpPage() {
                 <AuthInput
                   id="firstName"
                   name="firstName"
-                  label="First name"
+                  label={t("signup.firstName")}
                   autoComplete="given-name"
-                  placeholder="Sam"
+                  placeholder={t("signup.firstNamePlaceholder")}
                 />
                 <AuthInput
                   id="lastName"
                   name="lastName"
-                  label="Last name"
+                  label={t("signup.lastName")}
                   autoComplete="family-name"
-                  placeholder="Wilson"
+                  placeholder={t("signup.lastNamePlaceholder")}
                 />
               </div>
               <AuthInput
                 id="signup-email"
                 name="email"
-                label="Email"
+                label={t("signup.email")}
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("signup.emailPlaceholder")}
               />
               <AuthInput
                 id="signup-telephone"
                 name="telephone"
-                label="Phone number"
+                label={t("signup.phone")}
                 type="tel"
                 autoComplete="tel"
-                placeholder="+213 555 123 456"
+                placeholder={t("signup.phonePlaceholder")}
               />
               <WilayaSelect />
-              <AuthInput
+              <AuthPasswordInput
                 id="signup-password"
                 name="password"
-                label="Password"
-                type="password"
+                label={t("signup.password")}
                 autoComplete="new-password"
-                placeholder="8+ characters"
+                placeholder={t("signup.passwordPlaceholder")}
               />
 
               <p className="text-xs leading-relaxed text-eco-green/50">
-                By creating an account you agree to our terms and privacy
-                practices. We never sell your data.
+                {t("signup.terms")}
               </p>
 
               <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end sm:gap-3">
                 <Link
                   to="/"
-                  className="inline-flex min-h-[2.75rem] items-center justify-center rounded-xl border border-eco-green/20 bg-white/60 px-6 text-sm font-semibold text-eco-green shadow-sm transition hover:border-eco-green/35 hover:bg-eco-beige/50 active:scale-[0.99]"
+                  className="inline-flex min-h-[3rem] items-center justify-center rounded-2xl border border-white/50 bg-white/45 px-6 text-sm font-semibold text-eco-green shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md transition hover:bg-white/65 active:scale-[0.99]"
                 >
-                  Cancel
+                  {t("signup.cancel")}
                 </Link>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex min-h-[2.75rem] items-center justify-center rounded-xl bg-eco-green px-8 text-sm font-bold tracking-wide text-white shadow-lg shadow-eco-green/25 transition hover:brightness-[1.05] active:scale-[0.99] disabled:opacity-60"
+                  className="inline-flex min-h-[3rem] items-center justify-center rounded-2xl bg-gradient-to-b from-eco-green to-[#324a2d] px-8 text-sm font-bold tracking-wide text-white shadow-[0_14px_32px_-12px_rgba(63,93,58,0.55)] transition hover:brightness-[1.08] active:scale-[0.99] disabled:opacity-60"
                 >
-                  {loading ? "Creating…" : "Confirm"}
+                  {loading ? t("signup.submitting") : t("signup.submit")}
                 </button>
               </div>
 
-              <p className="text-center text-sm text-eco-green/55 lg:hidden">
-                Already registered?{" "}
+              <p className="text-center text-sm text-eco-green/55">
+                {t("signup.alreadyRegistered")}{" "}
                 <Link
                   to="/login"
                   className="font-semibold text-eco-coral underline-offset-2 hover:underline"
                 >
-                  Log in
+                  {t("signup.logIn")}
                 </Link>
               </p>
             </form>

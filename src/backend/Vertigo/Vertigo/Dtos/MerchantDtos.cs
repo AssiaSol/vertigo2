@@ -57,5 +57,7 @@ namespace Vertigo.Dtos
         public int IdGerant { get; set; }
         public string GerantNom { get; set; } = string.Empty;
         public string GerantEmail { get; set; } = string.Empty;
+        public double Rating { get; set; }
+        public int RatingCount { get; set; }
     }
 }

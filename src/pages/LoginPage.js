@@ -5,13 +5,16 @@ import {
   AuthChrome,
   AuthEyebrow,
   AuthInput,
+  AuthPasswordInput,
 } from "../components/auth/AuthChrome";
 import { login } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
+import { useT } from "../i18n";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
+  const t = useT();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,11 +33,11 @@ export function LoginPage() {
       navigate("/deals");
     } catch (err) {
       if (err.status === 403) {
-        setError("Your account has been suspended.");
+        setError(t("login.errors.suspended"));
       } else if (err.status === 401) {
-        setError("Incorrect email or password.");
+        setError(t("login.errors.invalid"));
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(t("login.errors.generic"));
       }
     } finally {
       setLoading(false);
@@ -43,17 +46,16 @@ export function LoginPage() {
 
   return (
     <AuthChrome variant="login">
-      <main className="mx-auto flex min-h-[calc(100vh-5.25rem)] max-w-6xl items-center justify-center px-4 py-12 md:px-6 md:py-16 lg:py-20  bg-[#F4E3B2]/60">
+      <main className="mx-auto flex min-h-[calc(100vh-5.25rem)] max-w-6xl items-center justify-center px-4 py-12 md:px-6 md:py-16 lg:py-20">
         <AuthCard>
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:items-center">
             <div className="lg:pr-4">
-              <AuthEyebrow>Welcome back</AuthEyebrow>
+              <AuthEyebrow>{t("login.eyebrow")}</AuthEyebrow>
               <h1 className="mt-3 font-heading text-4xl font-bold tracking-tight text-eco-green md:text-5xl">
-                Log in
+                {t("login.title")}
               </h1>
               <p className="mt-4 max-w-md text-base leading-relaxed text-eco-green/70 md:text-lg">
-                Enter your email and password to view your rescued baskets and
-                track deliveries.
+                {t("login.subtitle")}
               </p>
               <div className="mt-8 hidden h-px w-16 rounded-full bg-gradient-to-r from-eco-coral to-eco-softYellow lg:block" />
             </div>
@@ -71,18 +73,17 @@ export function LoginPage() {
               <AuthInput
                 id="login-email"
                 name="email"
-                label="Email"
+                label={t("login.emailLabel")}
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("login.emailPlaceholder")}
               />
-              <AuthInput
+              <AuthPasswordInput
                 id="login-password"
                 name="password"
-                label="Password"
-                type="password"
+                label={t("login.passwordLabel")}
                 autoComplete="current-password"
-                placeholder="••••••••"
+                placeholder={t("login.passwordPlaceholder")}
               />
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
@@ -92,31 +93,31 @@ export function LoginPage() {
                     name="remember"
                     className="h-4 w-4 rounded border-eco-green/25 text-eco-green focus:ring-eco-coral/30"
                   />
-                  Remember me
+                  {t("login.rememberMe")}
                 </label>
                 <button
                   type="button"
                   className="text-sm font-medium text-eco-coral underline-offset-4 transition hover:text-eco-green hover:underline"
                 >
-                  Forgot password?
+                  {t("login.forgotPassword")}
                 </button>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-2 w-full rounded-xl bg-eco-green py-3.5 font-heading text-sm font-bold tracking-wide text-white shadow-lg shadow-eco-green/25 transition hover:brightness-[1.05] active:scale-[0.99] disabled:opacity-60 md:mt-1"
+                className="mt-2 w-full rounded-2xl bg-gradient-to-b from-eco-green to-[#324a2d] py-4 font-heading text-sm font-bold tracking-wide text-white shadow-[0_14px_32px_-12px_rgba(63,93,58,0.55)] transition hover:brightness-[1.08] active:scale-[0.99] disabled:opacity-60 md:mt-1"
               >
-                {loading ? "Logging in…" : "Log in"}
+                {loading ? t("login.submitting") : t("login.submit")}
               </button>
 
-              <p className="text-center text-sm text-eco-green/55 lg:hidden">
-                New to Vertigo?{" "}
+              <p className="text-center text-sm text-eco-green/55">
+                {t("login.newToVertigo")}{" "}
                 <Link
                   to="/signup"
                   className="font-semibold text-eco-coral underline-offset-2 hover:underline"
                 >
-                  Create an account
+                  {t("login.createAccount")}
                 </Link>
               </p>
             </form>

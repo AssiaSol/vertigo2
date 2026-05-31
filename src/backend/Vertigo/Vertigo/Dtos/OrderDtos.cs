@@ -8,10 +8,28 @@ namespace Vertigo.Dtos
         public int PanierId { get; set; }
     }
 
+    // Book the same basket for a chosen period (max 7 days).
+    public class ScheduleOrderRequest
+    {
+        [Required]
+        public int PanierId { get; set; }
+        [Required]
+        public DateTime StartDate { get; set; }
+        [Required]
+        public DateTime EndDate { get; set; }
+    }
+
     public class UpdateStatusRequest
     {
         [Required]
         public string? Status { get; set; }
+    }
+
+    // Merchant rates a customer after an order is delivered.
+    public class RateClientRequest
+    {
+        public int Note { get; set; }
+        public string? Commentaire { get; set; }
     }
 
     public class OrderDto

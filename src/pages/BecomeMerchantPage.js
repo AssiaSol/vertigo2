@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthedHeader } from "../components/AuthedHeader";
+import { AccountChrome } from "../components/AccountChrome";
 import { applyMerchant, getMyMerchant } from "../api/merchants";
+import { useT } from "../i18n";
 
 export function BecomeMerchantPage() {
   const navigate = useNavigate();
+  const t = useT();
   const [existing, setExisting] = useState(null);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
@@ -40,9 +42,9 @@ export function BecomeMerchantPage() {
     } catch (err) {
       if (err.status === 400 && err.data?.errors) {
         const flat = Object.values(err.data.errors).flat();
-        setError(flat[0] || "Validation failed.");
+        setError(flat[0] || t("becomeMerchant.validationFailed"));
       } else {
-        setError(err.data?.message || "Couldn't submit your application.");
+        setError(err.data?.message || t("becomeMerchant.submitFailed"));
       }
     } finally {
       setSubmitting(false);
@@ -50,21 +52,19 @@ export function BecomeMerchantPage() {
   };
 
   return (
-    <div className="min-h-screen bg-eco-beige/40 font-body text-eco-green">
-      <AuthedHeader />
-      <main className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
-        <p className="font-heading text-[11px] font-bold uppercase tracking-[0.2em] text-eco-coral">
-          Open a shop
-        </p>
-        <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-eco-green md:text-4xl">
-          Become a merchant
-        </h1>
-        <p className="mt-2 text-sm text-eco-green/70 md:text-base">
-          Real restaurants and stores only. We verify every application using your{" "}
-          <strong>Registre de Commerce</strong> before approval.
+    <AccountChrome
+      showBack
+      eyebrow={t("becomeMerchant.eyebrow")}
+      title={t("becomeMerchant.title")}
+      breadcrumbs={[{ label: t("profile.dashboard.navDashboard"), to: "/profile" }, { label: t("becomeMerchant.title") }]}
+    >
+      <div className="mx-auto max-w-3xl">
+        <p className="text-sm text-eco-green/70 md:text-base">
+          {t("becomeMerchant.intro")}{" "}
+          <strong>{t("becomeMerchant.registreLabel")}</strong>.
         </p>
 
-        {checking && <p className="mt-6 text-sm text-eco-green/60">Checking your status…</p>}
+        {checking && <p className="mt-6 text-sm text-eco-green/60">{t("becomeMerchant.checking")}</p>}
 
         {!checking && existing && (
           <StatusCard boutique={existing} onContinue={() => navigate("/my-restaurant")} />
@@ -79,50 +79,50 @@ export function BecomeMerchantPage() {
             )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Shop name" name="nomBoutique" placeholder="Oran Bakery" required />
-              <Field label="City" name="ville" placeholder="Oran" required />
+              <Field label={t("becomeMerchant.shopName")} name="nomBoutique" placeholder={t("becomeMerchant.shopNamePlaceholder")} required />
+              <Field label={t("becomeMerchant.city")} name="ville" placeholder={t("becomeMerchant.cityPlaceholder")} required />
             </div>
 
-            <Field label="Short description (3-20 chars)" name="description" placeholder="Bakery" required />
+            <Field label={t("becomeMerchant.description")} name="description" placeholder={t("becomeMerchant.descriptionPlaceholder")} required />
 
             <Field
-              label="Full address (min 25 chars)"
+              label={t("becomeMerchant.address")}
               name="localisation"
-              placeholder="12 Rue principale, centre-ville d'Oran, Algérie"
+              placeholder={t("becomeMerchant.addressPlaceholder")}
               required
             />
 
             <Field
-              label="Registre de Commerce"
+              label={t("becomeMerchant.registre")}
               name="registre"
-              placeholder="RC-12345"
+              placeholder={t("becomeMerchant.registrePlaceholder")}
               required
-              hint="Your legal business registration number."
+              hint={t("becomeMerchant.registreHint")}
             />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Cuisine type" name="cuisineType" placeholder="Bakery" />
-              <Field label="Phone number" name="phoneNumber" type="tel" placeholder="+213 555 123 456" />
+              <Field label={t("becomeMerchant.cuisineType")} name="cuisineType" placeholder={t("becomeMerchant.cuisineTypePlaceholder")} />
+              <Field label={t("becomeMerchant.phone")} name="phoneNumber" type="tel" placeholder={t("becomeMerchant.phonePlaceholder")} />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Latitude" name="latitude" placeholder="35.6969" />
-              <Field label="Longitude" name="longitude" placeholder="-0.6331" />
+              <Field label={t("becomeMerchant.latitude")} name="latitude" placeholder={t("becomeMerchant.latitudePlaceholder")} />
+              <Field label={t("becomeMerchant.longitude")} name="longitude" placeholder={t("becomeMerchant.longitudePlaceholder")} />
             </div>
 
-            <Field label="Image URL" name="boutiqueImagePath" placeholder="https://…" />
+            <Field label={t("becomeMerchant.imageUrl")} name="boutiqueImagePath" placeholder={t("becomeMerchant.imageUrlPlaceholder")} />
 
             <button
               type="submit"
               disabled={submitting}
               className="mt-2 inline-flex justify-center rounded-xl bg-eco-green px-6 py-3 font-heading text-sm font-bold tracking-wide text-white shadow-lg shadow-eco-green/25 transition hover:brightness-[1.05] active:scale-[0.99] disabled:opacity-60"
             >
-              {submitting ? "Submitting…" : "Submit application"}
+              {submitting ? t("becomeMerchant.submitting") : t("becomeMerchant.submit")}
             </button>
           </form>
         )}
-      </main>
-    </div>
+      </div>
+    </AccountChrome>
   );
 }
 
@@ -146,28 +146,32 @@ function Field({ label, name, type = "text", placeholder, required, hint }) {
 }
 
 function StatusCard({ boutique, onContinue }) {
+  const t = useT();
   if (boutique.valide) {
     return (
       <div className="mt-6 rounded-2xl border border-eco-green/20 bg-white p-6 shadow-sm">
-        <p className="font-heading text-lg font-semibold text-eco-green">You're a merchant ✓</p>
+        <p className="font-heading text-lg font-semibold text-eco-green">{t("becomeMerchant.approvedTitle")}</p>
         <p className="mt-1 text-sm text-eco-green/60">
-          Your shop <strong>{boutique.nomBoutique}</strong> is approved and live.
+          {t("becomeMerchant.approvedBody", { name: boutique.nomBoutique })}
         </p>
         <button
           onClick={onContinue}
           className="mt-4 inline-flex rounded-xl bg-eco-green px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:brightness-[1.05] active:scale-[0.99]"
         >
-          Go to my restaurant
+          {t("becomeMerchant.goToRestaurant")}
         </button>
       </div>
     );
   }
   return (
     <div className="mt-6 rounded-2xl border border-eco-softYellow/40 bg-eco-softYellow/20 p-6">
-      <p className="font-heading text-lg font-semibold text-eco-green">Awaiting approval</p>
+      <p className="font-heading text-lg font-semibold text-eco-green">{t("becomeMerchant.awaitingTitle")}</p>
       <p className="mt-1 text-sm text-eco-green/70">
-        Your application for <strong>{boutique.nomBoutique}</strong> was submitted on{" "}
-        {new Date(boutique.dateCreation).toLocaleDateString()}. We'll review your Registre ({boutique.registre}) shortly.
+        {t("becomeMerchant.awaitingBody", {
+          name: boutique.nomBoutique,
+          date: new Date(boutique.dateCreation).toLocaleDateString(),
+          registre: boutique.registre,
+        })}
       </p>
     </div>
   );

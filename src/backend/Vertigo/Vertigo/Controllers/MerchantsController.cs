@@ -152,7 +152,9 @@ namespace Vertigo.Controllers
             DateCreation = b.DateCreation,
             IdGerant = b.IdGerant,
             GerantNom = b.Gerant?.Nom ?? string.Empty,
-            GerantEmail = b.Gerant?.Email ?? string.Empty
+            GerantEmail = b.Gerant?.Email ?? string.Empty,
+            Rating = b.Note?.Note ?? 0.0,
+            RatingCount = b.Note?.NbNote ?? 0
         };
     }
 }

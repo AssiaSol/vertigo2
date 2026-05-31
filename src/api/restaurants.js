@@ -42,3 +42,16 @@ export function getNearbyRestaurants({ latitude, longitude, radiusKm = 5, sortBy
   });
   return apiFetch(`/api/restaurants/nearby?${qs.toString()}`);
 }
+
+/**
+ * @param {number} id
+ * @param {{ latitude?: number, longitude?: number }} [coords]
+ * @returns {Promise<NearbyRestaurant>}
+ */
+export function getRestaurant(id, coords = {}) {
+  const qs = new URLSearchParams();
+  if (coords.latitude != null) qs.set("latitude", String(coords.latitude));
+  if (coords.longitude != null) qs.set("longitude", String(coords.longitude));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return apiFetch(`/api/restaurants/${id}${suffix}`);
+}

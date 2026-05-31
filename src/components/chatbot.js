@@ -1,57 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-
-const SYSTEM_PROMPT = `You are Vertigo's friendly in-app assistant. Your job is to answer users' questions and help them navigate the website — nothing more. Do not invent features that don't exist.
-
-ABOUT VERTIGO
-Vertigo is a food rescue app in Algeria (Oran, Mostaganem, Sidi Bel Abbès) that connects consumers with local restaurants and stores selling surplus food at a discount. Basket types are Bakery, Food, Grocery, and Dessert/Surprise.
-
-HOW THE APP WORKS (walk users through this when asked)
-1. Sign up at /signup (name, email, phone, password) or log in at /login.
-2. Browse deals at /deals — a grid of nearby restaurants with discounts. Users can sort by Best discount, Distance, or Rating, and pick a radius (2–50 km). The app uses the browser's geolocation; if denied, it falls back to Oran center.
-3. Each deal card has an "Order now" button. One click places an order; no payment in-app — users pay at pickup.
-4. Customers track their orders at /orders. Status stages: Pending → Preparing → On the way → Delivered. When the order says "On the way", the customer can tap "Mark received".
-5. Customers can flag a restaurant from a deal card or order row (Report button).
-
-BECOMING A MERCHANT
-Users who want to sell surplus food apply at /become-merchant. The form requires shop name, city, description, full address, and a Registre de Commerce (business registration number). Admin reviews every application. Once approved, the user's role becomes Gerant and they see "My restaurant" in the header.
-
-MERCHANT DASHBOARD (/my-restaurant)
-Approved merchants see incoming orders and update status with buttons: "Start preparing", "Mark on the way", "Mark delivered". They can also cancel or report a customer.
-
-ADMIN
-Admins approve or reject merchant applications at /admin/approvals.
-
-NAV LINKS (direct users here when helpful)
-- /deals — deals feed
-- /orders — my orders
-- /my-restaurant — merchant dashboard (gérants only)
-- /become-merchant — apply as a merchant
-- /admin/approvals — admin review (admins only)
-- /login, /signup — auth pages
-
-LANGUAGE
-Detect the user's language and always reply in the same one. Fluently support English and French. If they switch mid-conversation, switch with them.
-
-STYLE
-- Keep answers short, warm, and concrete. 1–3 sentences unless they ask for details.
-- Point to specific pages/buttons when relevant ("Go to /deals and tap Order now").
-- Don't make up features (no in-app payment, no delivery tracking on a map, no reviews/ratings system beyond existing stars).
-- If a question isn't about Vertigo, food rescue, or navigating the site, politely redirect.`;
-
-const GREETING =
-  "Hi! I'm Vertigo's assistant 🌱 Ask me anything about rescuing food, baskets, or how the app works.\n\nBonjour ! Je suis l'assistant Vertigo 🌱 Posez-moi vos questions sur la récupération alimentaire, les paniers ou le fonctionnement de l'application.";
-
-const ERROR_MESSAGE =
-  "Sorry, I'm having trouble right now. Please try again! / Désolé, j'ai un problème en ce moment. Veuillez réessayer !";
-
-const QUICK_REPLIES = [
-  "How do I order?",
-  "How do I become a merchant?",
-  "Where do I see my orders?",
-  "What is Vertigo?",
-];
+import { useT } from "../i18n";
 
 export function ChatBot() {
+  const t = useT();
+
+  const SYSTEM_PROMPT = t("chatbot.systemPrompt");
+  const GREETING = t("chatbot.greeting");
+  const ERROR_MESSAGE = t("chatbot.errorMessage");
+
+  const QUICK_REPLIES = [
+    t("chatbot.quickReplies.howToOrder"),
+    t("chatbot.quickReplies.howToBecomeMerchant"),
+    t("chatbot.quickReplies.whereOrders"),
+    t("chatbot.quickReplies.whatIsVertigo"),
+  ];
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: "assistant", content: GREETING },
@@ -75,17 +38,29 @@ export function ChatBot() {
     setInput("");
     setLoading(true);
 
+    const apiKey = process.env.REACT_APP_GROQ_KEY;
+    if (!apiKey) {
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: t("chatbot.missingApiKey"),
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.REACT_APP_OPENROUTER_KEY}`,
-          "HTTP-Referer": window.location.origin,
-          "X-Title": "Vertigo",
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "inclusionai/ling-2.6-flash:free",
+          model: "llama-3.3-70b-versatile",
+          temperature: 0.6,
           max_tokens: 1024,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
@@ -94,15 +69,23 @@ export function ChatBot() {
         }),
       });
 
-      if (!res.ok) throw new Error(`API error ${res.status}`);
+      const data = await res.json().catch(() => ({}));
 
-      const data = await res.json();
+      if (!res.ok) {
+        const detail = data?.error?.message || data?.message || `HTTP ${res.status}`;
+        throw new Error(detail);
+      }
+
       const reply = data.choices?.[0]?.message?.content ?? "";
+      if (!reply) throw new Error(t("chatbot.emptyResponse"));
 
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch (err) {
       console.error("[ChatBot]", err);
-      setMessages((m) => [...m, { role: "assistant", content: ERROR_MESSAGE }]);
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: `${ERROR_MESSAGE}\n\n(${err.message})` },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -120,7 +103,7 @@ export function ChatBot() {
       {/* Floating toggle button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? "Close chat" : "Open chat"}
+        aria-label={open ? t("chatbot.closeChat") : t("chatbot.openChat")}
         className="fixed bottom-5 right-5 z-[90] grid h-14 w-14 place-items-center rounded-full bg-eco-coral text-white shadow-xl ring-4 ring-white/40 transition hover:brightness-95 active:scale-95 md:bottom-6 md:right-6"
       >
         {open ? (
@@ -152,13 +135,16 @@ export function ChatBot() {
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-eco-coral">
               <span className="text-sm font-bold text-white">V</span>
             </div>
-            <div className="min-w-0">
-              <p className="font-heading text-sm font-bold text-eco-beige">
-                Vertigo Assistant
+            <div className="min-w-0 flex-1">
+              <p className="font-heading text-sm font-bold leading-tight text-eco-beige">
+                {t("chatbot.title")}
               </p>
-              <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                <p className="text-[11px] text-eco-beige/75">Online</p>
+              <div className="mt-0.5 flex items-center gap-1.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-70" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-400" />
+                </span>
+                <p className="text-[11px] font-medium text-eco-beige/75">{t("chatbot.online")}</p>
               </div>
             </div>
           </div>
@@ -216,13 +202,13 @@ export function ChatBot() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
               disabled={loading}
-              placeholder="Ask anything… / Pose ta question…"
+              placeholder={t("chatbot.inputPlaceholder")}
               className="flex-1 resize-none rounded-xl border border-eco-green/15 bg-eco-beige/30 px-3 py-2 text-sm text-eco-green placeholder:text-eco-green/40 focus:border-eco-coral/40 focus:outline-none focus:ring-2 focus:ring-eco-coral/25"
             />
             <button
               onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
-              aria-label="Send"
+              aria-label={t("chatbot.send")}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-eco-coral text-white transition hover:brightness-95 active:scale-95 disabled:opacity-40"
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">

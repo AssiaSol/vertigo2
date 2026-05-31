@@ -7,9 +7,13 @@ import { MyOrdersPage } from "./pages/MyOrdersPage";
 import { RestaurantOrdersPage } from "./pages/RestaurantOrdersPage";
 import { BecomeMerchantPage } from "./pages/BecomeMerchantPage";
 import { AdminApprovalsPage } from "./pages/AdminApprovalsPage";
+import { FavoritesPage } from "./pages/FavoritesPage";
+import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { ChatBot } from "./components/chatbot";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { I18nProvider } from "./i18n";
 export function AppRoutes() {
   return (
     <Routes>
@@ -29,6 +33,30 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <MyOrdersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <FavoritesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/restaurants/:id"
+        element={
+          <ProtectedRoute>
+            <RestaurantDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />
@@ -64,11 +92,13 @@ export function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-        <ChatBot />
-      </BrowserRouter>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+          <ChatBot />
+        </BrowserRouter>
+      </AuthProvider>
+    </I18nProvider>
   );
 }

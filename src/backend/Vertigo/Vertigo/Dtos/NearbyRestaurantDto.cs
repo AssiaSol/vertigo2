@@ -28,4 +28,10 @@ namespace Vertigo.Dtos
         public DateTime? ValidUntil { get; set; }
         public string? ImageUrl { get; set; }
     }
+
+    public class FavoriteDealDto : OfferDto
+    {
+        public int BoutiqueId { get; set; }
+        public string? BoutiqueName { get; set; }
+    }
 }

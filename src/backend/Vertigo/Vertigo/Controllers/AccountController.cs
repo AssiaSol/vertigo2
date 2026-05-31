@@ -39,8 +39,15 @@ namespace Vertigo.Controllers
                         Nom = u.Nom,
                         Role = u.Role,
                         Email = u.Email,
+                        Telephone = u.Telephone,
                         NBReport = u.NBReport,
-                        Etudiant = u.Etudiant
+                        Etudiant = u.Etudiant,
+                        NumCarteEtu = u.NumCarteEtu,
+                        ProfilImagePath = u.ProfilImagePath,
+                        Wilaya = u.Wilaya,
+                        DateInscription = u.DateInscription,
+                        BAN = u.BAN
+                        // MotDePasse intentionally left empty — never expose the hash.
                     })
                     .FirstOrDefaultAsync();
                 if (monProfil == null) return NotFound(new { message = "Utilisateur introuvable." });
@@ -170,8 +177,24 @@ namespace Vertigo.Controllers
         }
 
         // POST: Account/Edit FINI
+        // Editable profile fields — all optional so partial updates don't trip
+        // the signup-only [Required] rules on the Utilisateur entity.
+        public class EditProfileRequest
+        {
+            public string? Nom { get; set; }
+            public string? Email { get; set; }
+            public string? Telephone { get; set; }
+            public string? MotDePasse { get; set; }
+            public string? Role { get; set; }
+            public string? ProfilImagePath { get; set; }
+            public string? Wilaya { get; set; }
+            public bool Etudiant { get; set; }
+            public string? NumCarteEtu { get; set; }
+            public bool BAN { get; set; }
+        }
+
         [HttpPost("edit/{id}")]
-        public async Task<ActionResult<object>> Edit(int id, [FromBody] Utilisateur utilisateur)
+        public async Task<ActionResult<object>> Edit(int id, [FromBody] EditProfileRequest utilisateur)
         {
             // 1. Recup ID 
             var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -183,6 +206,10 @@ namespace Vertigo.Controllers
             if (isAdmin || (currentUserId == id && !utilisateur.BAN))
             {
                 ModelState.Remove("ID");
+                // Allow empty password to mean "keep current"
+                if (string.IsNullOrEmpty(utilisateur.MotDePasse)) ModelState.Remove("MotDePasse");
+                // ProfilImagePath optional on edit
+                if (string.IsNullOrEmpty(utilisateur.ProfilImagePath)) ModelState.Remove("ProfilImagePath");
 
                 if (ModelState.IsValid)
                 {
@@ -220,7 +247,8 @@ namespace Vertigo.Controllers
                     if (userInDb.Etudiant!=utilisateur.Etudiant) userInDb.Etudiant = utilisateur.Etudiant;
                     if ((userInDb.Etudiant == utilisateur.Etudiant)&&(userInDb.NumCarteEtu!=utilisateur.NumCarteEtu)) userInDb.NumCarteEtu = utilisateur.Etudiant ? utilisateur.NumCarteEtu : null;
 
-                    if (utilisateur.ProfilImagePath != null) userInDb.ProfilImagePath = utilisateur.ProfilImagePath;
+                    if (!string.IsNullOrEmpty(utilisateur.ProfilImagePath)) userInDb.ProfilImagePath = utilisateur.ProfilImagePath;
+                    if (utilisateur.Wilaya != null) userInDb.Wilaya = utilisateur.Wilaya;
                 
 
                 await _context.SaveChangesAsync();

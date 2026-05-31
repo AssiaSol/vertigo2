@@ -134,6 +134,217 @@ namespace Vertigo.Services
             }
         }
 
+        // Idempotent test data: a single "Vertigo Test Kitchen" boutique with a few
+        // high-stock fake baskets, handy for trying ordering / weekly booking.
+        public static async Task EnsureTestBasketsAsync(VertigoContext ctx)
+        {
+            const string testShopName = "Vertigo Test Kitchen";
+            var now = DateTime.UtcNow;
+
+            var boutique = await ctx.Boutique.FirstOrDefaultAsync(b => b.NomBoutique == testShopName);
+            if (boutique == null)
+            {
+                var gerant = await ctx.Utilisateur.FirstOrDefaultAsync(u => u.Email == "seed@vertigo.local");
+                if (gerant == null)
+                {
+                    gerant = new Utilisateur
+                    {
+                        Nom = "SeedGerant",
+                        Email = "seed@vertigo.local",
+                        MotDePasse = SecurityHelper.HashPassword("SeedPass123"),
+                        Telephone = "+213555000000",
+                        Role = "Gerant",
+                        DateInscription = DateTime.UtcNow,
+                        NBReport = 0,
+                        Report = new List<string>(),
+                        Etudiant = false,
+                        BAN = false,
+                        ProfilImagePath = "/images/default-profile.png"
+                    };
+                    ctx.Utilisateur.Add(gerant);
+                    await ctx.SaveChangesAsync();
+                }
+
+                boutique = new Boutique
+                {
+                    NomBoutique = testShopName,
+                    Ville = "Oran",
+                    Description = "Test fixtures",
+                    IdGerant = gerant.ID,
+                    Localisation = "Centre-ville d'Oran — Test Kitchen",
+                    Registre = "RC-TEST01",
+                    Valide = true,
+                    Note = new Evaluation { NbNote = 42, Note = 4.9 },
+                    NBvente = 0,
+                    NBReport = 0,
+                    Report = new List<string>(),
+                    BAN = false,
+                    BoutiqueImagePath = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+                    DateCreation = now,
+                    Latitude = 35.6969,
+                    Longitude = -0.6331,
+                    CuisineType = "Test",
+                    PhoneNumber = "+213555123456"
+                };
+                ctx.Boutique.Add(boutique);
+                await ctx.SaveChangesAsync();
+            }
+
+            // If the shop already has baskets, we're done (idempotent).
+            if (await ctx.Panier.AnyAsync(p => p.IdBoutique == boutique.IDBoutique)) return;
+
+            var testBaskets = new (string Name, string Desc, decimal Original, decimal Pct, string Img)[]
+            {
+                ("TEST Mega Bag", "Huge surprise bag — high stock for weekly-booking tests.", 2000m, 60m, "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800"),
+                ("TEST Bakery Box", "Assorted bread & pastries left over from the day.", 800m, 50m, "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800"),
+                ("TEST Veggie Crate", "Fresh seasonal vegetables nearing their date.", 1200m, 45m, "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800"),
+                ("TEST Sushi Set", "Chef's surplus sushi platter.", 2500m, 55m, "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800"),
+                ("TEST Sweet Box", "Cakes and desserts of the day.", 1500m, 40m, "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800"),
+            };
+
+            foreach (var b in testBaskets)
+            {
+                var discounted = Math.Round(b.Original * (1 - b.Pct / 100m), 2);
+                ctx.Panier.Add(new Panier
+                {
+                    Name = TrimName(b.Name),
+                    Description = b.Desc,
+                    Types = "Surprise Basket",
+                    IdBoutique = boutique.IDBoutique,
+                    PanierPrix = discounted,
+                    OriginalPrice = b.Original,
+                    DiscountPercentage = b.Pct,
+                    Note = new Evaluation { NbNote = 10, Note = 4.8 },
+                    NBdispo = 25,                       // plenty of stock for 7-day booking
+                    Statut = true,
+                    PanierImagePath = b.Img,
+                    ValidFrom = now.AddDays(-1),
+                    ValidUntil = now.AddDays(30),
+                    IsActive = true
+                });
+            }
+            await ctx.SaveChangesAsync();
+        }
+
+        // A few more idempotent test shops scattered around Oran (within ~2 km of
+        // the centre), each with a couple of high-stock baskets.
+        public static async Task EnsureNearOranBasketsAsync(VertigoContext ctx)
+        {
+            var gerant = await ctx.Utilisateur.FirstOrDefaultAsync(u => u.Email == "seed@vertigo.local");
+            if (gerant == null)
+            {
+                gerant = new Utilisateur
+                {
+                    Nom = "SeedGerant",
+                    Email = "seed@vertigo.local",
+                    MotDePasse = SecurityHelper.HashPassword("SeedPass123"),
+                    Telephone = "+213555000000",
+                    Role = "Gerant",
+                    DateInscription = DateTime.UtcNow,
+                    NBReport = 0,
+                    Report = new List<string>(),
+                    Etudiant = false,
+                    BAN = false,
+                    ProfilImagePath = "/images/default-profile.png"
+                };
+                ctx.Utilisateur.Add(gerant);
+                await ctx.SaveChangesAsync();
+            }
+
+            await SeedTestShopAsync(ctx, gerant.ID, "Oran Test Deli", "Test deli", "Deli", 35.7015, -0.6285,
+                "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800",
+                new (string, string, string, decimal, decimal)[]
+                {
+                    ("Deli Lunch Box", "Sandwiches & sides from today's counter.", "Food Basket", 900m, 50m),
+                    ("Cheese Box", "Assorted cheeses near their date.", "Food Basket", 1400m, 45m),
+                });
+
+            await SeedTestShopAsync(ctx, gerant.ID, "Oran Test Grill", "Test grill", "Grill", 35.6920, -0.6395,
+                "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
+                new (string, string, string, decimal, decimal)[]
+                {
+                    ("Grill Platter", "Mixed grilled meats surplus.", "Food Basket", 1800m, 55m),
+                    ("Mixed Meat Box", "Chef's leftover grill selection.", "Food Basket", 2200m, 60m),
+                });
+
+            await SeedTestShopAsync(ctx, gerant.ID, "Oran Test Sweets", "Test sweets", "Pastry", 35.7005, -0.6360,
+                "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800",
+                new (string, string, string, decimal, decimal)[]
+                {
+                    ("Pastry Surprise", "End-of-day pastries & viennoiseries.", "Bakery Basket", 700m, 50m),
+                    ("Cake Box", "Slices and whole cakes of the day.", "Bakery Basket", 1600m, 40m),
+                });
+
+            await SeedTestShopAsync(ctx, gerant.ID, "Oran Test Market", "Test market", "Grocery", 35.6885, -0.6300,
+                "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800",
+                new (string, string, string, decimal, decimal)[]
+                {
+                    ("Grocery Bag", "Pantry staples close to expiry.", "Grocery Basket", 1000m, 45m),
+                    ("Fruit Crate", "Ripe seasonal fruit to rescue.", "Grocery Basket", 1200m, 50m),
+                });
+        }
+
+        // Creates a test boutique (if missing) and its baskets (if it has none).
+        private static async Task SeedTestShopAsync(
+            VertigoContext ctx, int gerantId, string name, string description, string cuisine,
+            double lat, double lng, string img,
+            (string Name, string Desc, string Type, decimal Original, decimal Pct)[] baskets)
+        {
+            var now = DateTime.UtcNow;
+            var boutique = await ctx.Boutique.FirstOrDefaultAsync(b => b.NomBoutique == name);
+            if (boutique == null)
+            {
+                boutique = new Boutique
+                {
+                    NomBoutique = name,
+                    Ville = "Oran",
+                    Description = description,
+                    IdGerant = gerantId,
+                    Localisation = $"Oran — {name}",
+                    Registre = "RC-" + Math.Abs(name.GetHashCode()) % 100000,
+                    Valide = true,
+                    Note = new Evaluation { NbNote = 30, Note = 4.6 },
+                    NBvente = 0,
+                    NBReport = 0,
+                    Report = new List<string>(),
+                    BAN = false,
+                    BoutiqueImagePath = img,
+                    DateCreation = now,
+                    Latitude = lat,
+                    Longitude = lng,
+                    CuisineType = cuisine,
+                    PhoneNumber = "+213555123456"
+                };
+                ctx.Boutique.Add(boutique);
+                await ctx.SaveChangesAsync();
+            }
+
+            if (await ctx.Panier.AnyAsync(p => p.IdBoutique == boutique.IDBoutique)) return;
+
+            foreach (var b in baskets)
+            {
+                var discounted = Math.Round(b.Original * (1 - b.Pct / 100m), 2);
+                ctx.Panier.Add(new Panier
+                {
+                    Name = TrimName(b.Name),
+                    Description = b.Desc,
+                    Types = b.Type,
+                    IdBoutique = boutique.IDBoutique,
+                    PanierPrix = discounted,
+                    OriginalPrice = b.Original,
+                    DiscountPercentage = b.Pct,
+                    Note = new Evaluation { NbNote = 8, Note = 4.6 },
+                    NBdispo = 20,
+                    Statut = true,
+                    PanierImagePath = img,
+                    ValidFrom = now.AddDays(-1),
+                    ValidUntil = now.AddDays(30),
+                    IsActive = true
+                });
+            }
+            await ctx.SaveChangesAsync();
+        }
+
         private static string TrimName(string s) => s.Length <= 20 ? s : s.Substring(0, 20);
     }
 }
