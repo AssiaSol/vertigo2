@@ -67,17 +67,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var ctx = scope.ServiceProvider.GetRequiredService<VertigoContext>();
-    try
-    {
-        await SeedData.EnsureSeededAsync(ctx);
-        await SeedData.EnsureTestBasketsAsync(ctx);
-        await SeedData.EnsureNearOranBasketsAsync(ctx);
-    }
-    catch (Exception ex)
-    {
-        // Never let a seeding failure prevent the app from starting.
-        Console.Error.WriteLine($"[Seed] skipped due to error: {ex.Message}");
-    }
+    await SeedData.EnsureSeededAsync(ctx);
 }
 
 app.Run();
