@@ -12,10 +12,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// SQLite: a single local file (vertigo.db) — no SQL Server / LocalDB install needed,
-// so the backend runs out-of-the-box on any machine after `dotnet run`.
+// PostgreSQL (Neon) — one shared cloud database so every machine sees the same
+// accounts, deals and orders. Connection string comes from configuration.
 builder.Services.AddDbContext<VertigoContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

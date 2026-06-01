@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Vertigo.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSqlite : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,21 +17,21 @@ namespace Vertigo.Migrations
                 name: "Utilisateur",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Nom = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    MotDePasse = table.Column<string>(type: "TEXT", nullable: false),
-                    Telephone = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", nullable: false),
-                    DateInscription = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NBReport = table.Column<int>(type: "INTEGER", nullable: false),
-                    Report = table.Column<string>(type: "TEXT", nullable: false),
-                    Etudiant = table.Column<bool>(type: "INTEGER", nullable: false),
-                    NumCarteEtu = table.Column<string>(type: "TEXT", nullable: true),
-                    BAN = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ProfilImagePath = table.Column<string>(type: "TEXT", nullable: false),
-                    Wilaya = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nom = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    MotDePasse = table.Column<string>(type: "text", nullable: false),
+                    Telephone = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: false),
+                    DateInscription = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    NBReport = table.Column<int>(type: "integer", nullable: false),
+                    Report = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Etudiant = table.Column<bool>(type: "boolean", nullable: false),
+                    NumCarteEtu = table.Column<string>(type: "text", nullable: true),
+                    BAN = table.Column<bool>(type: "boolean", nullable: false),
+                    ProfilImagePath = table.Column<string>(type: "text", nullable: false),
+                    Wilaya = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -40,27 +42,27 @@ namespace Vertigo.Migrations
                 name: "Boutique",
                 columns: table => new
                 {
-                    IDBoutique = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    NomBoutique = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Ville = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    IdGerant = table.Column<int>(type: "INTEGER", nullable: false),
-                    Localisation = table.Column<string>(type: "TEXT", nullable: false),
-                    Registre = table.Column<string>(type: "TEXT", nullable: false),
-                    Valide = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Note_NbNote = table.Column<int>(type: "INTEGER", nullable: false),
-                    Note_Note = table.Column<double>(type: "REAL", nullable: false),
-                    NBvente = table.Column<int>(type: "INTEGER", nullable: false),
-                    NBReport = table.Column<int>(type: "INTEGER", nullable: false),
-                    Report = table.Column<string>(type: "TEXT", nullable: false),
-                    BAN = table.Column<bool>(type: "INTEGER", nullable: false),
-                    BoutiqueImagePath = table.Column<string>(type: "TEXT", nullable: false),
-                    DateCreation = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Latitude = table.Column<double>(type: "REAL", nullable: true),
-                    Longitude = table.Column<double>(type: "REAL", nullable: true),
-                    CuisineType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 30, nullable: true)
+                    IDBoutique = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    NomBoutique = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Ville = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Description = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    IdGerant = table.Column<int>(type: "integer", nullable: false),
+                    Localisation = table.Column<string>(type: "text", nullable: false),
+                    Registre = table.Column<string>(type: "text", nullable: false),
+                    Valide = table.Column<bool>(type: "boolean", nullable: false),
+                    Note_NbNote = table.Column<int>(type: "integer", nullable: false),
+                    Note_Note = table.Column<double>(type: "double precision", nullable: false),
+                    NBvente = table.Column<int>(type: "integer", nullable: false),
+                    NBReport = table.Column<int>(type: "integer", nullable: false),
+                    Report = table.Column<List<string>>(type: "text[]", nullable: false),
+                    BAN = table.Column<bool>(type: "boolean", nullable: false),
+                    BoutiqueImagePath = table.Column<string>(type: "text", nullable: false),
+                    DateCreation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Latitude = table.Column<double>(type: "double precision", nullable: true),
+                    Longitude = table.Column<double>(type: "double precision", nullable: true),
+                    CuisineType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -77,13 +79,13 @@ namespace Vertigo.Migrations
                 name: "ClientRating",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    GerantId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ClientId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Note = table.Column<int>(type: "INTEGER", nullable: false),
-                    Commentaire = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    DateCreation = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    GerantId = table.Column<int>(type: "integer", nullable: false),
+                    ClientId = table.Column<int>(type: "integer", nullable: false),
+                    Note = table.Column<int>(type: "integer", nullable: false),
+                    Commentaire = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    DateCreation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -104,13 +106,13 @@ namespace Vertigo.Migrations
                 name: "Avis",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UtilisateurId = table.Column<int>(type: "INTEGER", nullable: false),
-                    BoutiqueId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Note = table.Column<int>(type: "INTEGER", nullable: false),
-                    Commentaire = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    DateCreation = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UtilisateurId = table.Column<int>(type: "integer", nullable: false),
+                    BoutiqueId = table.Column<int>(type: "integer", nullable: false),
+                    Note = table.Column<int>(type: "integer", nullable: false),
+                    Commentaire = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    DateCreation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,11 +133,11 @@ namespace Vertigo.Migrations
                 name: "Favorite",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    BoutiqueId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    BoutiqueId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -156,23 +158,23 @@ namespace Vertigo.Migrations
                 name: "Panier",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
-                    Types = table.Column<string>(type: "TEXT", nullable: false),
-                    IdBoutique = table.Column<int>(type: "INTEGER", nullable: false),
-                    PanierPrix = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Note_NbNote = table.Column<int>(type: "INTEGER", nullable: false),
-                    Note_Note = table.Column<double>(type: "REAL", nullable: false),
-                    NBdispo = table.Column<int>(type: "INTEGER", nullable: false),
-                    Statut = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PanierImagePath = table.Column<string>(type: "TEXT", nullable: false),
-                    OriginalPrice = table.Column<decimal>(type: "TEXT", nullable: false),
-                    DiscountPercentage = table.Column<decimal>(type: "TEXT", nullable: false),
-                    ValidFrom = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ValidUntil = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Types = table.Column<string>(type: "text", nullable: false),
+                    IdBoutique = table.Column<int>(type: "integer", nullable: false),
+                    PanierPrix = table.Column<decimal>(type: "numeric", nullable: false),
+                    Note_NbNote = table.Column<int>(type: "integer", nullable: false),
+                    Note_Note = table.Column<double>(type: "double precision", nullable: false),
+                    NBdispo = table.Column<int>(type: "integer", nullable: false),
+                    Statut = table.Column<bool>(type: "boolean", nullable: false),
+                    PanierImagePath = table.Column<string>(type: "text", nullable: false),
+                    OriginalPrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    DiscountPercentage = table.Column<decimal>(type: "numeric", nullable: false),
+                    ValidFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ValidUntil = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -189,15 +191,15 @@ namespace Vertigo.Migrations
                 name: "Commande",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Reduction = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ClientID = table.Column<int>(type: "INTEGER", nullable: false),
-                    PanierID = table.Column<int>(type: "INTEGER", nullable: false),
-                    DateDeCommande = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Prix = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Statut = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Status = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Reduction = table.Column<bool>(type: "boolean", nullable: false),
+                    ClientID = table.Column<int>(type: "integer", nullable: false),
+                    PanierID = table.Column<int>(type: "integer", nullable: false),
+                    DateDeCommande = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Prix = table.Column<decimal>(type: "numeric", nullable: false),
+                    Statut = table.Column<bool>(type: "boolean", nullable: false),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -218,11 +220,11 @@ namespace Vertigo.Migrations
                 name: "DealFavorite",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PanierId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    PanierId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
