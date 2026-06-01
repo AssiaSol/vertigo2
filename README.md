@@ -123,23 +123,32 @@ dotnet restore
 dotnet run
 ```
 
-That's all — you only need the **.NET 10 SDK**. The app uses a **SQLite** database
-(a local file `vertigo.db`), so there's **nothing to install** — no SQL Server, no
-LocalDB. On startup it creates the file and all tables automatically
-(`Database.Migrate()`) and seeds demo data. The file is gitignored; delete it to
-reset the database.
+That's all — you only need the **.NET 10 SDK**. The app uses a **shared Neon
+PostgreSQL** database in the cloud (connection string is already in
+`appsettings.json`), so there's **nothing to install or configure** — no SQL
+Server, no LocalDB, no local database. On startup it creates any missing tables
+automatically (`Database.Migrate()`) and seeds demo data on first run.
 
-The API listens on `http://localhost:5096`. On first run, the `SeedData` service populates:
+Because the database is **shared**, every machine sees the same data: accounts,
+restaurants, deals and orders created on one PC show up for everyone.
+
+The API listens on `http://localhost:5096`. Demo accounts (seeded once):
 - 1 admin: `admin@vertigo.local` / `AdminPass123`
 - 1 gérant: `seed@vertigo.local` / `SeedPass123`
 - 12 restaurants around Oran, each with 1–2 active discounted baskets
 
-Migrations are idempotent; re-running is safe.
+> The Neon free tier sleeps after a few minutes idle; the first request after
+> that takes ~1–2 s to wake it, then it's fast.
 
 ### 4. Run the frontend (new terminal)
 
+> **Run `npm install` in the folder that contains `package.json` (the project
+> root).** Installing from a parent folder is the #1 cause of
+> `Module not found: react-leaflet / leaflet / ./assets/...` errors.
+
 ```bash
-cd vertigo
+cd vertigo2
+npm install
 npm start
 ```
 
@@ -164,7 +173,7 @@ Sign up any other account via `/signup` to test the customer flow.
 |----------|-------|---------|
 | `REACT_APP_OPENROUTER_KEY` | `.env` (frontend) | Chatbot — OpenRouter API key. Required for chatbot functionality. |
 | `REACT_APP_API_URL` | `.env` (frontend) | Base URL for the backend API. Default `http://localhost:5096`. |
-| `ConnectionStrings:DefaultConnection` | `src/backend/Vertigo/Vertigo/appsettings.json` | SQL Server LocalDB connection string. |
+| `ConnectionStrings:DefaultConnection` | `src/backend/Vertigo/Vertigo/appsettings.json` | Shared Neon PostgreSQL connection string (already set). |
 
 CRA reads `.env` only at startup — restart `npm start` after any change.
 
@@ -265,7 +274,7 @@ npm test        # React tests (CRA)
 |---------|--------------|-----|
 | `CORS error` in browser | Backend not running, or wrong port | Make sure `dotnet run` is up on 5096 |
 | `401` on every API call | Cookie not being sent | Ensure frontend uses `http://localhost:*` (not `file://`); check DevTools → Application → Cookies |
-| `no named pipe instance matching 'MSSQLLOCALDB'` | LocalDB instance stopped | `sqllocaldb start MSSQLLocalDB` |
+| `Module not found: react-leaflet` / `leaflet` / `./assets/…` | `npm install` was run in the wrong folder | `cd` into the project root (the folder with `package.json`), delete any `node_modules` in a parent folder, then `npm install` there |
 | Migration wants to drop columns | Model drifted from snapshot | Edit the generated `.cs` to keep only `AddColumn` operations, then `dotnet ef database update` |
 | `error MSB3021: file locked by Vertigo (PID …)` | Old `dotnet run` still holding binaries | `Stop-Process -Name Vertigo -Force` then rebuild |
 | Chatbot returns "Sorry, I'm having trouble…" | Missing or malformed `REACT_APP_OPENROUTER_KEY` | Confirm `.env` starts line with `REACT_APP_OPENROUTER_KEY=sk-or-v1-…`, restart `npm start` |
