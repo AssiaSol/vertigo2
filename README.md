@@ -115,13 +115,19 @@ REACT_APP_API_URL=http://localhost:5096
 
 **Never commit `.env`.** It's gitignored. Rotate the key immediately if it leaks.
 
-### 3. Apply backend migrations and run
+### 3. Run the backend
 
 ```bash
 cd src/backend/Vertigo/Vertigo
-dotnet ef database update
+dotnet restore
 dotnet run
 ```
+
+That's all — the app **creates the database and all tables automatically** on
+startup (`Database.Migrate()` from the committed migrations), so there's no manual
+SQL or EF command to run. Needs the .NET 10 SDK + SQL Server **LocalDB** (bundled
+with Visual Studio, or install "SQL Server Express LocalDB"). The DB is `VertigoDB`
+on `(localdb)\mssqllocaldb`; change `appsettings.json` to use another server.
 
 The API listens on `http://localhost:5096`. On first run, the `SeedData` service populates:
 - 1 admin: `admin@vertigo.local` / `AdminPass123`
