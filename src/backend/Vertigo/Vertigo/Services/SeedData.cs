@@ -31,6 +31,42 @@ namespace Vertigo.Services
                 await ctx.SaveChangesAsync();
             }
 
+            // Keep the demo seed accounts usable: never leave the seeded admin or
+            // gérant banned (they're shared fixtures used for demos/tests).
+            var seedAccounts = await ctx.Utilisateur
+                .Where(u => (u.Email == "admin@vertigo.local" || u.Email == "seed@vertigo.local") && (u.BAN || u.NBReport > 0))
+                .ToListAsync();
+            if (seedAccounts.Count > 0)
+            {
+                foreach (var u in seedAccounts) { u.BAN = false; u.NBReport = 0; }
+                await ctx.SaveChangesAsync();
+            }
+            var seedShops = await ctx.Boutique
+                .Where(b => b.NomBoutique == "Oran Bakery" && (b.BAN || b.NBReport > 0))
+                .ToListAsync();
+            if (seedShops.Count > 0)
+            {
+                foreach (var b in seedShops) { b.BAN = false; b.NBReport = 0; }
+                await ctx.SaveChangesAsync();
+            }
+
+            // Backfill: any boutique missing coordinates would be invisible in the
+            // nearby/deals feed. Give them their wilaya's coordinates so their
+            // baskets show up for clients.
+            var missingCoords = await ctx.Boutique
+                .Where(b => b.Latitude == null || b.Longitude == null)
+                .ToListAsync();
+            if (missingCoords.Count > 0)
+            {
+                foreach (var b in missingCoords)
+                {
+                    var (lat, lng) = WilayaToCoords(b.Ville);
+                    b.Latitude = lat;
+                    b.Longitude = lng;
+                }
+                await ctx.SaveChangesAsync();
+            }
+
             if (await ctx.Boutique.AnyAsync(b => b.Latitude != null)) return;
 
             // 1) Seed gérant user
@@ -346,5 +382,31 @@ namespace Vertigo.Services
         }
 
         private static string TrimName(string s) => s.Length <= 20 ? s : s.Substring(0, 20);
+
+        // Approximate coordinates per Algerian wilaya (fallback for boutiques with
+        // no precise map location). Defaults to Oran.
+        private static (double Lat, double Lng) WilayaToCoords(string? ville)
+        {
+            var key = (ville ?? "").Trim().ToLowerInvariant();
+            return key switch
+            {
+                "alger" or "algiers" => (36.7538, 3.0588),
+                "oran" => (35.6969, -0.6331),
+                "constantine" => (36.3650, 6.6147),
+                "annaba" => (36.9000, 7.7667),
+                "blida" => (36.4703, 2.8277),
+                "batna" => (35.5550, 6.1741),
+                "setif" or "sétif" => (36.1898, 5.4108),
+                "sidi bel abbès" or "sidi bel abbes" => (35.1878, -0.6306),
+                "biskra" => (34.8500, 5.7333),
+                "tlemcen" => (34.8783, -1.3150),
+                "béjaïa" or "bejaia" => (36.7500, 5.0667),
+                "tizi ouzou" => (36.7118, 4.0458),
+                "mostaganem" => (35.9311, 0.0892),
+                "ghardaïa" or "ghardaia" => (32.4900, 3.6700),
+                "ouargla" => (31.9500, 5.3167),
+                _ => (35.6969, -0.6331),
+            };
+        }
     }
 }

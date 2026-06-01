@@ -213,14 +213,17 @@ export function DealsPage() {
 
         {!loading && !error && restaurants.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {restaurants.map((r) => (
-              <RestaurantCard
-                key={r.id}
-                restaurant={r}
-                isFavorite={favIds.has(r.id)}
-                onToggleFavorite={() => toggleFavorite(r.id)}
-              />
-            ))}
+            {restaurants.flatMap((r) =>
+              (r.offers ?? []).map((o) => (
+                <RestaurantCard
+                  key={`${r.id}-${o.id}`}
+                  restaurant={r}
+                  offer={o}
+                  isFavorite={favIds.has(r.id)}
+                  onToggleFavorite={() => toggleFavorite(r.id)}
+                />
+              ))
+            )}
           </div>
         )}
       </div>
@@ -228,9 +231,9 @@ export function DealsPage() {
   );
 }
 
-function RestaurantCard({ restaurant, isFavorite, onToggleFavorite }) {
+function RestaurantCard({ restaurant, offer, isFavorite, onToggleFavorite }) {
   const t = useT();
-  const best = restaurant.offers[0];
+  const best = offer ?? restaurant.offers[0];
   const [ordering, setOrdering] = useState(false);
   const [orderState, setOrderState] = useState(null); // 'success' | 'error'
   const [orderMessage, setOrderMessage] = useState("");
@@ -311,10 +314,10 @@ function RestaurantCard({ restaurant, isFavorite, onToggleFavorite }) {
 
       {/* Image */}
       <div className="relative m-2 h-44 overflow-hidden rounded-[18px] bg-eco-beige/60 ring-1 ring-black/5">
-        {restaurant.imageUrl ? (
+        {(best?.imageUrl || restaurant.imageUrl) ? (
           <img
-            src={restaurant.imageUrl}
-            alt={restaurant.name}
+            src={best?.imageUrl || restaurant.imageUrl}
+            alt={best?.title || restaurant.name}
             className="h-full w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.03]"
             loading="lazy"
           />
@@ -374,12 +377,10 @@ function RestaurantCard({ restaurant, isFavorite, onToggleFavorite }) {
       <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-3">
         <div>
           <h3 className="font-heading text-[17px] font-bold leading-tight tracking-tight text-eco-green">
-            {restaurant.name}
+            {best?.title ?? restaurant.name}
           </h3>
           <div className="mt-1 flex items-center gap-1.5 text-[11px] text-eco-green/55">
-            <span className="inline-flex items-center gap-1 rounded-full bg-eco-green/[0.06] px-2 py-0.5 font-semibold">
-              {restaurant.cuisineType ?? t("deals.card.defaultCuisine")}
-            </span>
+            <span className="truncate font-semibold text-eco-green/70">{restaurant.name}</span>
             {restaurant.distanceKm > 0 && (
               <>
                 <span>·</span>
@@ -395,9 +396,6 @@ function RestaurantCard({ restaurant, isFavorite, onToggleFavorite }) {
             <div className="h-px bg-gradient-to-r from-transparent via-eco-green/10 to-transparent" />
 
             <div>
-              <p className="font-heading text-[13px] font-semibold leading-snug tracking-tight text-eco-green">
-                {best.title}
-              </p>
               <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-relaxed text-eco-green/55">
                 {best.description}
               </p>
@@ -477,11 +475,7 @@ function RestaurantCard({ restaurant, isFavorite, onToggleFavorite }) {
           to={`/restaurants/${restaurant.id}`}
           className="relative z-10 inline-flex items-center justify-between gap-1.5 rounded-xl border border-eco-green/10 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-eco-green/70 shadow-sm transition hover:bg-eco-beige/40 hover:text-eco-coral"
         >
-          <span>
-            {restaurant.offers.length > 1
-              ? t("deals.card.viewAll", { count: restaurant.offers.length })
-              : t("deals.card.viewRestaurant")}
-          </span>
+          <span>{t("deals.card.viewRestaurant")}</span>
           <span aria-hidden="true">→</span>
         </Link>
       </div>

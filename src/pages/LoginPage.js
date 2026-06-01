@@ -10,6 +10,7 @@ import {
 import { login } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 import { useT } from "../i18n";
+import { BannedScreen } from "../components/BannedScreen";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export function LoginPage() {
   const t = useT();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [banned, setBanned] = useState(false);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ export function LoginPage() {
       navigate("/deals");
     } catch (err) {
       if (err.status === 403) {
-        setError(t("login.errors.suspended"));
+        setBanned(true);
       } else if (err.status === 401) {
         setError(t("login.errors.invalid"));
       } else {
@@ -43,6 +45,10 @@ export function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (banned) {
+    return <BannedScreen />;
+  }
 
   return (
     <AuthChrome variant="login">

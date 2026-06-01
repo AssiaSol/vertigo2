@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { BannedScreen } from "./BannedScreen";
 
 export function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -15,6 +16,11 @@ export function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  // Banned users (e.g. too many reports) get a plain lock screen — no app access.
+  if (user.ban ?? user.BAN) {
+    return <BannedScreen />;
   }
 
   return children;

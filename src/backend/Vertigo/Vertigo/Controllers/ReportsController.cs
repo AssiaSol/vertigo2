@@ -36,8 +36,17 @@ namespace Vertigo.Controllers
             target.NBReport += 1;
             target.Report.Add($"Reported by {reporterName} on {DateTime.UtcNow:yyyy-MM-dd}: {reason}");
 
+            // Auto-ban a customer once they reach 3 reports (e.g. not picking up orders).
+            const int CustomerBanThreshold = 3;
+            var banned = false;
+            if (!target.BAN && target.NBReport >= CustomerBanThreshold)
+            {
+                target.BAN = true;
+                banned = true;
+            }
+
             await _context.SaveChangesAsync();
-            return Ok(new { message = "User reported.", totalReports = target.NBReport });
+            return Ok(new { message = "User reported.", totalReports = target.NBReport, banned });
         }
 
         // POST /api/reports/boutique/{id} — report a restaurant
@@ -57,8 +66,20 @@ namespace Vertigo.Controllers
             target.NBReport += 1;
             target.Report.Add($"Reported by {reporterName} on {DateTime.UtcNow:yyyy-MM-dd}: {reason}");
 
+            // Auto-ban a restaurant once more than 5 people report it (e.g. food safety).
+            const int BoutiqueBanThreshold = 6;
+            var banned = false;
+            if (!target.BAN && target.NBReport >= BoutiqueBanThreshold)
+            {
+                target.BAN = true;
+                banned = true;
+                // Lock out the owner too, so they hit the banned screen on login.
+                var gerant = await _context.Utilisateur.FindAsync(target.IdGerant);
+                if (gerant != null) gerant.BAN = true;
+            }
+
             await _context.SaveChangesAsync();
-            return Ok(new { message = "Restaurant reported.", totalReports = target.NBReport });
+            return Ok(new { message = "Restaurant reported.", totalReports = target.NBReport, banned });
         }
 
         private int? GetUserId()
