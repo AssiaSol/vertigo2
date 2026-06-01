@@ -123,11 +123,11 @@ dotnet restore
 dotnet run
 ```
 
-That's all — the app **creates the database and all tables automatically** on
-startup (`Database.Migrate()` from the committed migrations), so there's no manual
-SQL or EF command to run. Needs the .NET 10 SDK + SQL Server **LocalDB** (bundled
-with Visual Studio, or install "SQL Server Express LocalDB"). The DB is `VertigoDB`
-on `(localdb)\mssqllocaldb`; change `appsettings.json` to use another server.
+That's all — you only need the **.NET 10 SDK**. The app uses a **SQLite** database
+(a local file `vertigo.db`), so there's **nothing to install** — no SQL Server, no
+LocalDB. On startup it creates the file and all tables automatically
+(`Database.Migrate()`) and seeds demo data. The file is gitignored; delete it to
+reset the database.
 
 The API listens on `http://localhost:5096`. On first run, the `SeedData` service populates:
 - 1 admin: `admin@vertigo.local` / `AdminPass123`

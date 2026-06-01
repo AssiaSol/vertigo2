@@ -12,8 +12,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// SQLite: a single local file (vertigo.db) — no SQL Server / LocalDB install needed,
+// so the backend runs out-of-the-box on any machine after `dotnet run`.
 builder.Services.AddDbContext<VertigoContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

@@ -24,3 +24,8 @@ yarn-error.log*
 
 # local env
 .env
+
+# SQLite database (created automatically on first run)
+*.db
+*.db-shm
+*.db-wal
