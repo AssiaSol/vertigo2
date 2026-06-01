@@ -10,6 +10,7 @@ import { AdminApprovalsPage } from "./pages/AdminApprovalsPage";
 import { FavoritesPage } from "./pages/FavoritesPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { RescueMapPage } from "./pages/RescueMapPage";
 import { ChatBot } from "./components/chatbot";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -41,6 +42,14 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <FavoritesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/rescue-map"
+        element={
+          <ProtectedRoute>
+            <RescueMapPage />
           </ProtectedRoute>
         }
       />

@@ -4,9 +4,16 @@ import { AccountChrome } from "../components/AccountChrome";
 import { useAuth } from "../context/AuthContext";
 import { cancelOrder, deleteOrder, getMyOrders, ORDER_STATUS, ORDER_STATUS_LABELS, updateOrderStatus } from "../api/orders";
 import { reportBoutique } from "../api/reports";
+import { submitReview } from "../api/reviews";
 import { useT } from "../i18n";
 
 const ACTIVE_STATUSES = [ORDER_STATUS.Pending, ORDER_STATUS.Preparing, ORDER_STATUS.OnTheWay];
+const RATE_PROMPTED_KEY = "vertigo:rated-or-dismissed";
+
+function readPromptedSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(RATE_PROMPTED_KEY) || "[]")); }
+  catch { return new Set(); }
+}
 
 export function MyOrdersPage() {
   const t = useT();
@@ -16,6 +23,16 @@ export function MyOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
+  const [rateOrder, setRateOrder] = useState(null); // order awaiting a rating popup
+  const [prompted, setPrompted] = useState(readPromptedSet);
+
+  const markPrompted = (id) => {
+    setPrompted((prev) => {
+      const next = new Set(prev).add(id);
+      try { localStorage.setItem(RATE_PROMPTED_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -37,10 +54,25 @@ export function MyOrdersPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // After loading, prompt the customer to rate the first delivered order they
+  // haven't rated or dismissed yet.
+  useEffect(() => {
+    if (loading || rateOrder) return;
+    const pending = orders.find(
+      (o) => o.status === ORDER_STATUS.Delivered && o.boutiqueId && !prompted.has(o.id)
+    );
+    if (pending) setRateOrder(pending);
+  }, [orders, loading, prompted, rateOrder]);
+
   const advance = async (id, status) => {
     try {
       await updateOrderStatus(id, status);
       await load();
+      // Marking an order received → immediately offer to rate it.
+      if (status === ORDER_STATUS.Delivered) {
+        const o = orders.find((x) => x.id === id);
+        if (o && !prompted.has(id)) setRateOrder({ ...o, status: ORDER_STATUS.Delivered });
+      }
     } catch (err) {
       alert(err.data?.message || t("orders.errors.update"));
     }
@@ -165,7 +197,89 @@ export function MyOrdersPage() {
           ))}
         </div>
       </div>
+
+      {rateOrder && (
+        <RateDealModal
+          order={rateOrder}
+          onClose={() => { markPrompted(rateOrder.id); setRateOrder(null); }}
+          onDone={() => { markPrompted(rateOrder.id); setRateOrder(null); }}
+        />
+      )}
     </AccountChrome>
+  );
+}
+
+function RateDealModal({ order, onClose, onDone }) {
+  const t = useT();
+  const [note, setNote] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [comment, setComment] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  const submit = async () => {
+    if (note < 1) return;
+    setSaving(true);
+    setErr("");
+    try {
+      await submitReview(order.boutiqueId, note, comment);
+      onDone();
+    } catch (e) {
+      setErr(e.data?.message || t("orders.rate.error"));
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-eco-green/10 bg-white p-6 shadow-2xl">
+        <p className="font-heading text-[10px] font-bold uppercase tracking-[0.22em] text-eco-coral">{t("orders.rate.eyebrow")}</p>
+        <h3 className="mt-1 font-heading text-xl font-extrabold text-eco-green">{t("orders.rate.title")}</h3>
+        <p className="mt-1 text-[13px] text-eco-green/60">
+          {t("orders.rate.subtitle", { name: order.boutiqueName || order.panierName || "" })}
+        </p>
+
+        <div className="mt-4 flex justify-center gap-1.5" onMouseLeave={() => setHover(0)}>
+          {[1, 2, 3, 4, 5].map((i) => {
+            const on = i <= (hover || note);
+            return (
+              <button key={i} type="button" onClick={() => setNote(i)} onMouseEnter={() => setHover(i)} aria-label={`${i}`} className="transition active:scale-90">
+                <StarIcon className={`h-9 w-9 ${on ? "text-eco-softYellow" : "text-eco-green/20"}`} filled={on} />
+              </button>
+            );
+          })}
+        </div>
+
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={3}
+          maxLength={1000}
+          placeholder={t("orders.rate.placeholder")}
+          className="mt-4 w-full rounded-xl border border-eco-green/15 bg-white px-3 py-2.5 text-sm text-eco-green placeholder:text-eco-green/35 focus:border-eco-green/40 focus:outline-none focus:ring-2 focus:ring-eco-green/15"
+        />
+
+        {err && <p className="mt-2 text-[12px] text-eco-coral">{err}</p>}
+
+        <div className="mt-4 flex gap-2">
+          <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-eco-green/15 bg-white px-3 py-2.5 text-[13px] font-bold text-eco-green/70 transition hover:bg-eco-beige/50">
+            {t("orders.rate.later")}
+          </button>
+          <button type="button" onClick={submit} disabled={saving || note < 1} className="flex-1 rounded-xl bg-gradient-to-b from-eco-green to-[#324a2d] px-3 py-2.5 text-[13px] font-bold text-white transition hover:brightness-[1.08] disabled:opacity-50">
+            {saving ? t("orders.rate.submitting") : t("orders.rate.submit")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StarIcon({ className, filled }) {
+  return (
+    <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} className={className} aria-hidden="true">
+      <path d="M12 2.5l2.76 6.92 7.44.54-5.65 4.87 1.76 7.27L12 18.3l-6.31 3.8 1.76-7.27L1.8 9.96l7.44-.54L12 2.5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
   );
 }
 

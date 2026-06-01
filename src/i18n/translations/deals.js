@@ -26,6 +26,8 @@ export const deals = {
     },
     settings: "Settings",
     sectionTitle: "Best deals near you",
+    searchPlaceholder: "Search deals or restaurants…",
+    noMatches: "No deals match “{query}”.",
     empty: {
       title: "No deals nearby",
       hint: "Try expanding your search radius or check back later.",
@@ -87,6 +89,8 @@ export const deals = {
     },
     settings: "Paramètres",
     sectionTitle: "Les meilleures offres près de vous",
+    searchPlaceholder: "Rechercher une offre ou un restaurant…",
+    noMatches: "Aucune offre ne correspond à « {query} ».",
     empty: {
       title: "Aucune offre à proximité",
       hint: "Essayez d'élargir votre rayon de recherche ou revenez plus tard.",
@@ -148,6 +152,8 @@ export const deals = {
     },
     settings: "الإعدادات",
     sectionTitle: "أفضل العروض بالقرب منك",
+    searchPlaceholder: "ابحث عن عرض أو مطعم…",
+    noMatches: "لا توجد عروض تطابق «{query}».",
     empty: {
       title: "لا توجد عروض قريبة",
       hint: "حاول توسيع نطاق البحث أو عُد لاحقاً.",

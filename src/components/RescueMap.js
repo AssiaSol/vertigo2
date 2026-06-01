@@ -29,7 +29,7 @@ function FlyToActive({ city }) {
   return null;
 }
 
-export function RescueMap({ cities, activeIndex }) {
+export function RescueMap({ cities, activeIndex, onSelect }) {
   const t = useT();
   const active = cities[activeIndex];
   const activeRestaurants = active?.restaurants ?? [];
@@ -59,7 +59,10 @@ export function RescueMap({ cities, activeIndex }) {
               icon={restaurantPin}
               eventHandlers={{
                 click: () => {
-                  window.open(gmapsUrl, "_blank", "noopener,noreferrer");
+                  // If a handler is provided (e.g. open the deal page), use it;
+                  // otherwise fall back to opening Google Maps.
+                  if (onSelect) onSelect(r);
+                  else window.open(gmapsUrl, "_blank", "noopener,noreferrer");
                 },
               }}
             >
@@ -68,15 +71,11 @@ export function RescueMap({ cities, activeIndex }) {
                   <div style={{ fontWeight: 700, color: "#3F5D3A", fontSize: 12 }}>
                     {r.name}
                   </div>
-                  {r.cuisine ? (
-                    <div style={{ fontSize: 10, color: "rgba(63,93,58,0.6)" }}>
-                      {t("rescueMap.cuisineClickHint", { cuisine: r.cuisine })}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 10, color: "rgba(63,93,58,0.6)" }}>
-                      {t("rescueMap.clickHint")}
-                    </div>
-                  )}
+                  <div style={{ fontSize: 10, color: "rgba(63,93,58,0.6)" }}>
+                    {onSelect
+                      ? (r.cuisine ? `${r.cuisine} · ${t("rescueMap.openDealHint")}` : t("rescueMap.openDealHint"))
+                      : (r.cuisine ? t("rescueMap.cuisineClickHint", { cuisine: r.cuisine }) : t("rescueMap.clickHint"))}
+                  </div>
                 </div>
               </Tooltip>
             </Marker>

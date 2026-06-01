@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getNearbyRestaurants } from "../api/restaurants";
@@ -41,6 +41,7 @@ export function DealsPage() {
   const [wilaya, setWilaya] = useState(() => localStorage.getItem(WILAYA_STORAGE_KEY) || "oran");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [favIds, setFavIds] = useState(new Set());
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     getFavoriteIds()
@@ -129,6 +130,19 @@ export function DealsPage() {
     fetchDeals();
   }, [fetchDeals]);
 
+  // Flatten restaurants → one entry per basket, filtered by the search query
+  // (matches restaurant name, cuisine, or the basket's title/description).
+  const visibleCards = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const all = restaurants.flatMap((r) => (r.offers ?? []).map((o) => ({ r, o })));
+    if (!q) return all;
+    return all.filter(({ r, o }) =>
+      [r.name, r.cuisineType, o.title, o.description]
+        .filter(Boolean)
+        .some((s) => String(s).toLowerCase().includes(q))
+    );
+  }, [restaurants, query]);
+
   return (
     <AccountChrome
       eyebrow={t("deals.welcomeBack")}
@@ -201,9 +215,21 @@ export function DealsPage() {
           </div>
         </section>
 
-        <h2 className="mb-4 font-heading text-xl font-bold text-eco-green md:text-2xl">
-          {t("deals.sectionTitle")}
-        </h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-xl font-bold text-eco-green md:text-2xl">
+            {t("deals.sectionTitle")}
+          </h2>
+          <div className="relative w-full sm:w-72">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-eco-green/40" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("deals.searchPlaceholder")}
+              className="w-full rounded-full border border-eco-green/15 bg-white py-2 pl-9 pr-3 text-sm text-eco-green shadow-sm placeholder:text-eco-green/40 focus:border-eco-coral/40 focus:outline-none focus:ring-2 focus:ring-eco-coral/20"
+            />
+          </div>
+        </div>
 
         {loading && <DealsSkeleton />}
 
@@ -212,9 +238,13 @@ export function DealsPage() {
         {!loading && !error && restaurants.length === 0 && <EmptyState />}
 
         {!loading && !error && restaurants.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {restaurants.flatMap((r) =>
-              (r.offers ?? []).map((o) => (
+          visibleCards.length === 0 ? (
+            <div className="rounded-3xl border border-eco-green/8 bg-white p-10 text-center text-sm text-eco-green/55 shadow-[0_18px_44px_-28px_rgba(63,93,58,0.25)]">
+              {t("deals.noMatches", { query })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleCards.map(({ r, o }) => (
                 <RestaurantCard
                   key={`${r.id}-${o.id}`}
                   restaurant={r}
@@ -222,9 +252,9 @@ export function DealsPage() {
                   isFavorite={favIds.has(r.id)}
                   onToggleFavorite={() => toggleFavorite(r.id)}
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </AccountChrome>
@@ -560,6 +590,15 @@ function PinMarkerIcon({ className }) {
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
       <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
       <circle cx="12" cy="10" r="2.2" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function SearchIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+      <path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
