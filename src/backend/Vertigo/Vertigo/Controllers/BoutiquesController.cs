@@ -148,7 +148,7 @@ namespace Verdigo.Controllers
                 }
 
                 boutique.IdGerant = userId;
-                boutique.DateCreation = DateTime.Now;
+                boutique.DateCreation = DateTime.UtcNow;
 
                 userDetail.Role = "Gerant";
                 _context.Add(boutique);

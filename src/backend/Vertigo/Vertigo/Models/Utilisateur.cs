@@ -35,7 +35,7 @@ namespace Vertigo.Models
         public string Role { get; set; } = Roles.Client ;
 
         [Required]
-        public DateTime DateInscription { get; set; } = DateTime.Now;
+        public DateTime DateInscription { get; set; } = DateTime.UtcNow;
 
         [Required]
         public int NBReport { get; set; } = 0;

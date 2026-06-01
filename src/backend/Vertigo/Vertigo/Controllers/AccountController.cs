@@ -117,7 +117,7 @@ namespace Vertigo.Controllers
             {
                 return BadRequest(new { field = "NumCarteEtu", message = "Le numéro de carte est requis pour les étudiants." });
             }
-            utilisateur.DateInscription = DateTime.Now;
+            utilisateur.DateInscription = DateTime.UtcNow;
             if (ModelState.IsValid)
             {
                 var existingUser = await _context.Utilisateur
@@ -141,7 +141,7 @@ namespace Vertigo.Controllers
                     return BadRequest(new { errors });
                 }
 
-                utilisateur.DateInscription = DateTime.Now;
+                utilisateur.DateInscription = DateTime.UtcNow;
                 utilisateur.MotDePasse = SecurityHelper.HashPassword(utilisateur.MotDePasse);
                 utilisateur.Role = "Client";
 

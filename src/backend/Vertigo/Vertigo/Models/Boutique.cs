@@ -57,7 +57,7 @@ namespace Vertigo.Models
         public string BoutiqueImagePath { get; set; }
 
         [Required]
-        public DateTime DateCreation { get; set; } = DateTime.Now;
+        public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
         // ── Geolocation + restaurant metadata (added for /api/restaurants/nearby) ──
         public double? Latitude { get; set; }
