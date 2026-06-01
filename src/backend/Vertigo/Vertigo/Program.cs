@@ -63,10 +63,13 @@ app.MapControllerRoute(
 
 app.MapControllers();
 
-// ── Seed dev data (idempotent) ────────────────────────────────────────────────
+// ── Create/upgrade the database, then seed dev data (idempotent) ──────────────
+// Database.Migrate() builds the DB and all tables from the committed migrations,
+// so a teammate only needs to run `dotnet run` — no manual EF commands or SQL.
 using (var scope = app.Services.CreateScope())
 {
     var ctx = scope.ServiceProvider.GetRequiredService<VertigoContext>();
+    await ctx.Database.MigrateAsync();
     await SeedData.EnsureSeededAsync(ctx);
 }
 
