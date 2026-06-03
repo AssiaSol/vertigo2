@@ -5,8 +5,11 @@ services:
   - type: web
     name: vertigo-api
     runtime: docker
-    rootDir: src/backend/Vertigo/Vertigo
-    dockerfilePath: ./Dockerfile
+    # Paths are relative to the REPO ROOT. Don't use rootDir here — combining it
+    # with a Docker build makes Render append a stray "/src" to the context path
+    # (lstat .../Vertigo/Vertigo/src: no such file or directory).
+    dockerfilePath: ./src/backend/Vertigo/Vertigo/Dockerfile
+    dockerContext: ./src/backend/Vertigo/Vertigo
     plan: free
     envVars:
       # Values are entered in the Render dashboard (sync:false keeps secrets out of git).
