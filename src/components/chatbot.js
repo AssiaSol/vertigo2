@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "../i18n";
+import { apiFetch } from "../api/client";
 
 export function ChatBot() {
   const t = useT();
@@ -38,30 +39,12 @@ export function ChatBot() {
     setInput("");
     setLoading(true);
 
-    const apiKey = process.env.REACT_APP_GROQ_KEY;
-    if (!apiKey) {
-      setMessages((m) => [
-        ...m,
-        {
-          role: "assistant",
-          content: t("chatbot.missingApiKey"),
-        },
-      ]);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      // The Groq API key lives on the backend now — we just send the
+      // conversation and the server proxies it (see ChatController).
+      const data = await apiFetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          temperature: 0.6,
-          max_tokens: 1024,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             ...newMessages,
@@ -69,14 +52,7 @@ export function ChatBot() {
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        const detail = data?.error?.message || data?.message || `HTTP ${res.status}`;
-        throw new Error(detail);
-      }
-
-      const reply = data.choices?.[0]?.message?.content ?? "";
+      const reply = data?.reply ?? "";
       if (!reply) throw new Error(t("chatbot.emptyResponse"));
 
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
