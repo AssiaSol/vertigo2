@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Vertigo.Data;
@@ -13,10 +14,17 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Hosts like Render assign a port at runtime via the PORT env var and expect the
+// app to listen on it. Bind to it when present; otherwise keep the local default.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // ── Services ──────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 // PostgreSQL (Neon) — one shared cloud database so every machine sees the same
 // accounts, deals and orders. Connection string comes from configuration.
@@ -32,7 +40,23 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Account/Login";
         options.ExpireTimeSpan = TimeSpan.FromDays(14);
         options.SlidingExpiration = true;
+
+        // Frontend (Vercel) and API (Render) live on different domains, so the auth
+        // cookie is sent cross-site. Browsers only allow that with SameSite=None AND
+        // Secure. Render serves the API over HTTPS, so this works in production.
+        if (!builder.Environment.IsDevelopment())
+        {
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        }
     });
+
+// Allowed browser origins. Localhost is always permitted for local dev; production
+// origins (e.g. the Vercel URL) come from the FRONTEND_ORIGINS env var, comma-separated.
+var frontendOrigins = (Environment.GetEnvironmentVariable("FRONTEND_ORIGINS") ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(o => new Uri(o).Host)
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
 builder.Services.AddCors(options =>
 {
@@ -42,7 +66,9 @@ builder.Services.AddCors(options =>
             {
                 if (string.IsNullOrEmpty(origin)) return false;
                 var uri = new Uri(origin);
-                return uri.Host == "localhost" || uri.Host == "127.0.0.1";
+                return uri.Host == "localhost"
+                    || uri.Host == "127.0.0.1"
+                    || frontendOrigins.Contains(uri.Host);
             })
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -52,6 +78,17 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // ── Middleware pipeline ───────────────────────────────────────────────────────
+// Behind Render's load balancer the app receives plain HTTP with the original
+// scheme in X-Forwarded-Proto. Apply these headers first so HttpsRedirection,
+// Secure cookies and auth all see the request as the HTTPS request it really was.
+var forwardedOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedOptions.KnownNetworks.Clear();
+forwardedOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedOptions);
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
