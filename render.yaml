@@ -1,0 +1,18 @@
+# Render Blueprint — forces a Docker build of the .NET 10 API and ignores the
+# root package.json (which otherwise makes Render guess a Node build → status 127).
+# Deploy via Render → New + → Blueprint → pick this repo. Render reads this file.
+services:
+  - type: web
+    name: vertigo-api
+    runtime: docker
+    rootDir: src/backend/Vertigo/Vertigo
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      # Values are entered in the Render dashboard (sync:false keeps secrets out of git).
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FRONTEND_ORIGINS
+        sync: false
